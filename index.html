@@ -162,6 +162,7 @@ body{background:var(--cream);color:var(--ink);font-family:var(--font-mono);font-
     <div class="ccat"><div class="ccat-label">Rentals</div><div class="ccat-val" id="cs-rentals">—</div><div class="ccat-bar"><div class="ccat-bar-fill" id="csb-rentals" style="width:0%"></div></div></div>
     <div class="ccat"><div class="ccat-label">Misc</div><div class="ccat-val" id="cs-misc">—</div><div class="ccat-bar"><div class="ccat-bar-fill" id="csb-misc" style="width:0%"></div></div></div>
   </div>
+  <div id="debug-out" style="font-size:10px;font-family:monospace;background:#f5f0e8;padding:8px 12px;margin-bottom:12px;border:1px solid #ccc;border-radius:2px;line-height:1.6"></div>
   <div id="shoots-container"><div class="loading">Loading shoots...</div></div>
   <div class="oh-section" id="oh-section">
     <div class="section-label"><span>Overhead &amp; fixed costs</span><button class="btn-small" id="add-oh-btn">+ add line</button></div>
@@ -226,6 +227,15 @@ async function loadData(){
     shoots=s.map(r=>({id:r.id,name:r.fields[F.s.name]||'',type:fv(r.fields,F.s.type)||'',season:fv(r.fields,F.s.season)||'',status:fv(r.fields,F.s.status)||''}));
     lineItems=l.map(r=>({id:r.id,desc:r.fields[F.li.desc]||'',cat:fv(r.fields,F.li.cat)||'',rate:r.fields[F.li.rate]||0,qty:r.fields[F.li.qty]||1,days:r.fields[F.li.days]||1,total:r.fields[F.li.total]||0,paid:r.fields[F.li.paid]||false,shootIds:fids(r.fields,F.li.shoot)}));
     overhead=o.map(r=>({id:r.id,desc:r.fields[F.oh.desc]||'',amount:r.fields[F.oh.amount]||0,type:fv(r.fields,F.oh.type)||'',month:fv(r.fields,F.oh.month)||'',paid:r.fields[F.oh.paid]||false}));
+    // DEBUG — remove after fix
+    console.log('Shoots loaded:', shoots.length, shoots.slice(0,3).map(s=>({name:s.name,type:s.type,season:s.season})));
+    console.log('Line items loaded:', lineItems.length, lineItems.slice(0,2).map(li=>({desc:li.desc,cat:li.cat,shootIds:li.shootIds})));
+    const debugEl=document.getElementById('debug-out');
+    if(debugEl){
+      const sample=shoots.slice(0,4).map(s=>`id:${s.id.slice(-6)} | type:"${s.type}" | season:"${s.season}"`).join('<br>');
+      const typeCheck=`TYPES match: ${shoots.map(s=>TYPES.includes(s.type)?'✓':'✗ "'+s.type+'"').join(', ')}`;
+      debugEl.innerHTML=`<b>Shoots (${shoots.length}):</b><br>${sample}<br><br><b>${typeCheck}</b>`;
+    }
     render();
   }catch(e){
     document.getElementById('shoots-container').innerHTML=`<div class="error-msg">Failed to load data. ${e.message}</div>`;
