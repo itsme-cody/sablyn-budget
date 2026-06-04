@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sablyn — Content Budget 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#FAF8F5;--ink:#1A1916;--warm-mid:#8C8880;--warm-light:#D4CFC8;--warm-lighter:#EAE7E2;
+  --accent:#C4A882;--accent-dark:#8A6E50;--danger:#B85C4A;--success:#5A8A6A;--warning:#B8923A;
+  --font-display:'Cormorant Garamond',serif;--font-mono:'DM Mono',monospace;
+}
+body{background:var(--cream);color:var(--ink);font-family:var(--font-mono);font-size:12px;font-weight:300;min-height:100vh}
+.app{max-width:960px;margin:0 auto;padding:2rem 1.5rem}
+
+.header{margin-bottom:2.5rem;border-bottom:0.5px solid var(--warm-light);padding-bottom:1.5rem}
+.header-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem}
+.wordmark{font-family:var(--font-display);font-size:32px;font-weight:300;letter-spacing:.12em}
+.wordmark span{font-style:italic}
+.header-sub{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--warm-mid);margin-top:3px}
+.budget-nums{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--warm-light);border:0.5px solid var(--warm-light);border-radius:2px;margin-top:1rem;overflow:hidden}
+.bnum{background:var(--cream);padding:.75rem 1rem}
+.bnum-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--warm-mid);margin-bottom:4px}
+.bnum-val{font-family:var(--font-display);font-size:22px;font-weight:300}
+.bnum-val.warn{color:var(--danger)}
+.bnum-val.good{color:var(--success)}
+.bar-track{height:2px;background:var(--warm-lighter);border-radius:1px;overflow:hidden;margin:12px 0 4px}
+.bar-fill{height:2px;background:var(--ink);border-radius:1px;transition:width .5s ease}
+.bar-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--warm-mid)}
+
+.nav{display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;align-items:center}
+.nav-group{display:flex;gap:2px}
+.nbtn{font-family:var(--font-mono);font-size:10px;font-weight:300;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border:0.5px solid var(--warm-light);background:transparent;cursor:pointer;color:var(--warm-mid);transition:all .15s}
+.nbtn:first-child{border-radius:2px 0 0 2px}
+.nbtn:last-child{border-radius:0 2px 2px 0}
+.nbtn.active{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+.nav-sep{width:0.5px;background:var(--warm-light);align-self:stretch}
+
+.cat-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--warm-light);border:0.5px solid var(--warm-light);border-radius:2px;margin-bottom:2rem;overflow:hidden}
+.ccat{background:var(--cream);padding:.6rem .75rem}
+.ccat-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--warm-mid);margin-bottom:2px}
+.ccat-val{font-family:var(--font-display);font-size:18px;font-weight:300}
+.ccat-bar{height:1px;background:var(--warm-lighter);margin-top:6px;overflow:hidden}
+.ccat-bar-fill{height:1px;background:var(--accent-dark)}
+
+.section-label{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--warm-mid);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:0.5px solid var(--warm-light);display:flex;justify-content:space-between;align-items:baseline}
+.type-block{margin-bottom:2.5rem}
+.type-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:0.5px solid var(--warm-light)}
+.type-title{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--warm-mid)}
+.type-total{font-family:var(--font-display);font-size:16px;font-weight:300}
+
+.shoot-card{border:0.5px solid var(--warm-light);border-radius:2px;margin-bottom:4px;overflow:hidden;transition:border-color .15s}
+.shoot-card:hover{border-color:var(--warm-mid)}
+.shoot-row{display:grid;grid-template-columns:200px 1fr 110px 80px 32px;align-items:center;padding:.6rem .75rem;cursor:pointer;gap:8px}
+.shoot-name{font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+.shoot-season{font-size:9px;color:var(--warm-mid);text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
+.shoot-mini-bar{height:1px;background:var(--warm-lighter);flex:1;overflow:hidden}
+.shoot-mini-fill{height:1px;background:var(--accent)}
+.shoot-amt{font-family:var(--font-display);font-size:16px;font-weight:300;text-align:right}
+.shoot-status{font-size:9px;letter-spacing:.06em;text-transform:uppercase;text-align:right}
+.shoot-status.paid{color:var(--success)}
+.shoot-status.partial{color:var(--warning)}
+.shoot-status.unpaid{color:var(--warm-mid)}
+.shoot-status.empty{color:var(--warm-light)}
+.chevron{color:var(--warm-mid);font-size:10px;text-align:center;transition:transform .2s;user-select:none}
+.chevron.open{transform:rotate(180deg)}
+
+.shoot-detail{display:none;border-top:0.5px solid var(--warm-lighter)}
+.shoot-detail.open{display:block}
+.detail-cats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--warm-lighter)}
+.dcat{background:var(--cream);padding:.5rem .75rem}
+.dcat-label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--warm-mid);margin-bottom:2px}
+.dcat-val{font-family:var(--font-display);font-size:15px;font-weight:300}
+.li-wrap{padding:.5rem .75rem}
+.li-section{margin-bottom:.75rem}
+.li-sec-title{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--warm-mid);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.li-row{display:grid;grid-template-columns:1fr 80px 90px 80px 24px;gap:6px;align-items:center;padding:3px 0;border-bottom:0.5px solid var(--warm-lighter)}
+.li-row:last-child{border-bottom:none}
+.li-name{font-size:11px}
+.li-rate{font-size:10px;color:var(--warm-mid)}
+.li-total{font-family:var(--font-display);font-size:13px;font-weight:300;text-align:right}
+.li-paid-label{display:flex;align-items:center;gap:4px;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--warm-mid);cursor:pointer;user-select:none}
+.li-paid-label.yes{color:var(--success)}
+.cb{appearance:none;width:11px;height:11px;border:0.5px solid var(--warm-light);border-radius:1px;cursor:pointer;position:relative;flex-shrink:0;transition:all .15s}
+.cb:checked{background:var(--success);border-color:var(--success)}
+.cb:checked::after{content:'';position:absolute;left:3px;top:0px;width:3px;height:6px;border:1.5px solid white;border-top:none;border-left:none;transform:rotate(45deg)}
+.li-del{opacity:0;color:var(--warm-mid);cursor:pointer;font-size:16px;line-height:1;background:none;border:none;padding:0;transition:opacity .1s}
+.li-row:hover .li-del{opacity:1}
+
+.add-form{padding:.5rem .75rem;border-top:0.5px solid var(--warm-lighter);display:none}
+.add-form.open{display:block}
+.add-grid{display:grid;grid-template-columns:1fr 80px 50px 50px auto;gap:6px;align-items:end;margin-bottom:6px}
+.add-field{display:flex;flex-direction:column;gap:3px}
+.add-field label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--warm-mid)}
+.add-field input,.add-field select{font-family:var(--font-mono);font-size:11px;font-weight:300;padding:5px 8px;border:0.5px solid var(--warm-light);background:transparent;color:var(--ink);border-radius:1px;outline:none;width:100%}
+.add-field input:focus,.add-field select:focus{border-color:var(--warm-mid)}
+.btn-primary{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 14px;background:var(--ink);color:var(--cream);border:none;cursor:pointer;border-radius:1px;white-space:nowrap}
+.btn-secondary{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 14px;background:transparent;color:var(--warm-mid);border:0.5px solid var(--warm-light);cursor:pointer;border-radius:1px;white-space:nowrap}
+.btn-small{font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;background:transparent;color:var(--warm-mid);border:0.5px solid var(--warm-light);cursor:pointer;border-radius:1px;transition:all .15s}
+.btn-small:hover{color:var(--ink);border-color:var(--warm-mid)}
+
+.oh-section{margin-bottom:2.5rem}
+.matthew-card{border:0.5px solid var(--warm-light);border-radius:2px;margin-bottom:4px;overflow:hidden}
+.matthew-header{display:grid;grid-template-columns:1fr 120px 110px 28px;gap:8px;align-items:center;padding:.6rem .75rem;cursor:pointer}
+.matthew-name{font-size:11px}
+.matthew-total{font-family:var(--font-display);font-size:15px;font-weight:300;text-align:right}
+.matthew-summary{font-size:9px;letter-spacing:.06em;text-transform:uppercase;text-align:right}
+.matthew-summary.done{color:var(--success)}
+.matthew-summary.partial{color:var(--warning)}
+.matthew-summary.none{color:var(--warm-mid)}
+.matthew-months{display:none;border-top:0.5px solid var(--warm-lighter);padding:.75rem}
+.matthew-months.open{display:block}
+.months-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.month-tile{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;border:0.5px solid var(--warm-lighter);border-radius:2px;cursor:pointer;transition:border-color .15s;background:transparent}
+.month-tile:hover{border-color:var(--warm-light)}
+.month-tile.paid-m{background:rgba(90,138,106,.06);border-color:rgba(90,138,106,.3)}
+.month-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--warm-mid)}
+.month-tile.paid-m .month-lbl{color:var(--success)}
+.month-amt{font-family:var(--font-display);font-size:13px;font-weight:300}
+.months-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:6px;border-top:0.5px solid var(--warm-lighter);font-size:9px;color:var(--warm-mid)}
+.months-footer-r{font-family:var(--font-display);font-size:13px;font-weight:300;color:var(--ink)}
+.oh-row{border:0.5px solid var(--warm-light);border-radius:2px;margin-bottom:4px;overflow:hidden}
+.oh-main{display:grid;grid-template-columns:1fr 110px 90px 24px;gap:8px;align-items:center;padding:.6rem .75rem}
+.oh-name{font-size:11px}
+.oh-amt{font-family:var(--font-display);font-size:15px;font-weight:300;text-align:right}
+.oh-del{opacity:0;color:var(--warm-mid);cursor:pointer;font-size:16px;background:none;border:none;padding:0;transition:opacity .1s}
+.oh-row:hover .oh-del{opacity:1}
+
+.loading{text-align:center;padding:3rem;font-size:11px;color:var(--warm-mid);letter-spacing:.1em;text-transform:uppercase}
+.error-msg{padding:.75rem 1rem;background:rgba(184,92,74,.08);border:0.5px solid rgba(184,92,74,.3);border-radius:2px;font-size:11px;color:var(--danger);margin-bottom:1rem}
+
+@media(max-width:600px){
+  .shoot-row{grid-template-columns:1fr 80px 28px}
+  .shoot-mini-bar,.shoot-status{display:none}
+  .budget-nums{grid-template-columns:1fr 1fr}
+  .cat-summary{grid-template-columns:1fr 1fr}
+  .months-grid{grid-template-columns:repeat(4,1fr)}
+  .add-grid{grid-template-columns:1fr 70px auto}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="wordmark">S<span>ablyn</span></div>
+        <div class="header-sub">Content Budget · 2026</div>
+      </div>
+      <div style="text-align:right">
+        <div class="bnum-label" style="margin-bottom:4px">Annual budget</div>
+        <div style="font-family:var(--font-display);font-size:28px;font-weight:300">$200,000</div>
+      </div>
+    </div>
+    <div class="budget-nums" id="budget-nums">
+      <div class="bnum"><div class="bnum-label">Total committed</div><div class="bnum-val" id="h-spent">—</div></div>
+      <div class="bnum"><div class="bnum-label">Remaining</div><div class="bnum-val" id="h-rem">—</div></div>
+      <div class="bnum"><div class="bnum-label">Paid out</div><div class="bnum-val" id="h-paid">—</div></div>
+      <div class="bnum"><div class="bnum-label">Outstanding</div><div class="bnum-val" id="h-out">—</div></div>
+    </div>
+    <div class="bar-track"><div class="bar-fill" id="main-bar" style="width:0%"></div></div>
+    <div class="bar-meta"><span id="bar-pct">loading...</span><span>$200,000</span></div>
+  </div>
+
+  <div class="nav">
+    <div class="nav-group" id="season-nav">
+      <button class="nbtn active" data-season="all">All seasons</button>
+      <button class="nbtn" data-season="Spring 26">Spring</button>
+      <button class="nbtn" data-season="Pre-Fall 26">Pre-fall</button>
+      <button class="nbtn" data-season="Fall 26">Fall</button>
+      <button class="nbtn" data-season="Holiday 26">Holiday</button>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group" id="type-nav">
+      <button class="nbtn active" data-type="all">All types</button>
+      <button class="nbtn" data-type="ECOM">ECOM</button>
+      <button class="nbtn" data-type="JOOR">JOOR</button>
+      <button class="nbtn" data-type="Lookbook">Lookbook</button>
+      <button class="nbtn" data-type="Content">Content</button>
+    </div>
+  </div>
+
+  <div class="cat-summary" id="cat-summary">
+    <div class="ccat"><div class="ccat-label">Talent</div><div class="ccat-val" id="cs-talent">—</div><div class="ccat-bar"><div class="ccat-bar-fill" id="csb-talent" style="width:0%"></div></div></div>
+    <div class="ccat"><div class="ccat-label">Location</div><div class="ccat-val" id="cs-location">—</div><div class="ccat-bar"><div class="ccat-bar-fill" id="csb-location" style="width:0%"></div></div></div>
+    <div class="ccat"><div class="ccat-label">Rentals</div><div class="ccat-val" id="cs-rentals">—</div><div class="ccat-bar"><div class="ccat-bar-fill" id="csb-rentals" style="width:0%"></div></div></div>
+    <div class="ccat"><div class="ccat-label">Misc</div><div class="ccat-val" id="cs-misc">—</div><div class="ccat-bar"><div class="ccat-bar-fill" id="csb-misc" style="width:0%"></div></div></div>
+  </div>
+
+  <div id="shoots-container"><div class="loading">Loading shoots...</div></div>
+
+  <div class="oh-section" id="oh-section">
+    <div class="section-label">
+      <span>Overhead & fixed costs</span>
+      <button class="btn-small" id="add-oh-btn">+ add line</button>
+    </div>
+    <div id="oh-list"><div class="loading">Loading overhead...</div></div>
+    <div class="add-form" id="oh-form">
+      <div style="display:grid;grid-template-columns:1fr 120px;gap:6px;margin-bottom:6px">
+        <div class="add-field"><label>Description</label><input id="oh-desc" placeholder="e.g. Software subscription"></div>
+        <div class="add-field"><label>Amount</label><input id="oh-amount" type="number" placeholder="0.00"></div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-primary" id="oh-save">Add</button>
+        <button class="btn-secondary" id="oh-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_TOKEN = 'PASTE_YOUR_NEW_TOKEN_HERE';
+const BASE_ID = 'appEPuHeDmRhiTIig';
+const TABLES = {
+  shoots: 'tblD4slShJJkraZwb',
+  lineItems: 'tbldxIthZkL8oCTQV',
+  overhead: 'tbltLik6uj2uMHwIB'
+};
+const FIELDS = {
+  shoots: { name:'fld3Mp9qJo5cOxGQz', type:'fldJvFySVFOcJvoUn', season:'fldNjDIisPde6zJdr', status:'fldXX2JU3YmwzcrfV' },
+  li: { desc:'fld5JGXvPqxlMStQN', cat:'fldjA3X6vkQqU0ild', rate:'fldl0N1t7s6rXndDf', qty:'fld2LD4bok7Cvxrzt', days:'fld1A8qpLCsLHMPvw', total:'fldL3Vfu7uYtJUB4Q', paid:'fldfjZvSVm2MTtmdL', shoot:'fldq71lUiOW2HHoGO' },
+  oh: { desc:'flduwDtfTLBsFU5s0', amount:'fldMqvs1iMfCLmqtF', type:'fldvsAYoCrvlZttiK', month:'fldx73GHgYE3zKwWl', paid:'fldQDd9SkdWvsiK67' }
+};
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const BUDGET = 200000;
+const MATTHEW_RATE = 5500;
+const TYPES = ['ECOM','JOOR','Lookbook','Content'];
+const SEASONS = ['Spring 26','Pre-Fall 26','Fall 26','Holiday 26'];
+
+let shoots = [], lineItems = [], overhead = [];
+let openShoot = null, openAddForm = null, matthewOpen = false;
+let seasonFilter = 'all', typeFilter = 'all';
+
+const fmt = n => n == null ? '—' : '$' + Math.round(n).toLocaleString('en-US');
+const fmtD = n => n == null ? '—' : '$' + parseFloat(n).toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:2});
+
+async function api(method, table, id='', body=null, params='') {
+  const url = `https://api.airtable.com/v0/${BASE_ID}/${table}${id?'/'+id:''}${params}`;
+  const opts = { method, headers: { 'Authorization': `Bearer ${API_TOKEN}`, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function fetchAll(table, params='') {
+  let records = [], offset = '';
+  do {
+    const sep = params ? '&' : '?';
+    const r = await api('GET', table, '', null, params + (offset ? sep+'offset='+offset : ''));
+    records = records.concat(r.records);
+    offset = r.offset || '';
+  } while (offset);
+  return records;
+}
+
+async function loadData() {
+  try {
+    const [s, l, o] = await Promise.all([
+      fetchAll(TABLES.shoots),
+      fetchAll(TABLES.lineItems),
+      fetchAll(TABLES.overhead)
+    ]);
+    shoots = s.map(r => ({ id: r.id, name: r.fields[FIELDS.shoots.name]||'', type: r.fields[FIELDS.shoots.type]||'', season: r.fields[FIELDS.shoots.season]||'', status: r.fields[FIELDS.shoots.status]||'' }));
+    lineItems = l.map(r => ({ id: r.id, desc: r.fields[FIELDS.li.desc]||'', cat: r.fields[FIELDS.li.cat]||'', rate: r.fields[FIELDS.li.rate]||0, qty: r.fields[FIELDS.li.qty]||1, days: r.fields[FIELDS.li.days]||1, total: r.fields[FIELDS.li.total]||0, paid: r.fields[FIELDS.li.paid]||false, shootIds: (r.fields[FIELDS.li.shoot]||[]) }));
+    overhead = o.map(r => ({ id: r.id, desc: r.fields[FIELDS.oh.desc]||'', amount: r.fields[FIELDS.oh.amount]||0, type: r.fields[FIELDS.oh.type]||'', month: r.fields[FIELDS.oh.month]||'', paid: r.fields[FIELDS.oh.paid]||false }));
+    render();
+  } catch(e) {
+    document.getElementById('shoots-container').innerHTML = `<div class="error-msg">Failed to load data. Check your API token. ${e.message}</div>`;
+  }
+}
+
+function shootItems(shootId) { return lineItems.filter(li => li.shootIds.includes(shootId)); }
+function shootTotal(shootId) { return shootItems(shootId).reduce((a,li) => a + li.total, 0); }
+function catTotal(shootId, cat) { return shootItems(shootId).filter(li => li.cat===cat).reduce((a,li) => a + li.total, 0); }
+function matthewPaid() { return overhead.filter(o => o.type==='Monthly Retainer' && o.paid).length * MATTHEW_RATE; }
+function matthewTotal() { return 12 * MATTHEW_RATE; }
+function totalSpent() { return shoots.reduce((a,s) => a + shootTotal(s.id), 0) + overhead.filter(o=>o.type!=='Monthly Retainer').reduce((a,o)=>a+o.amount,0) + matthewTotal(); }
+function totalPaid() { return lineItems.filter(li=>li.paid).reduce((a,li)=>a+li.total,0) + overhead.filter(o=>o.paid && o.type!=='Monthly Retainer').reduce((a,o)=>a+o.amount,0) + matthewPaid(); }
+
+function filteredShoots() {
+  return shoots.filter(s => (seasonFilter==='all'||s.season===seasonFilter) && (typeFilter==='all'||s.type===typeFilter));
+}
+
+function updateHeader() {
+  const spent = totalSpent(), paid = totalPaid(), rem = BUDGET - spent, outstanding = spent - paid;
+  const pct = Math.min(100, (spent/BUDGET*100)).toFixed(1);
+  document.getElementById('h-spent').textContent = fmt(spent);
+  document.getElementById('h-rem').textContent = fmt(rem);
+  document.getElementById('h-rem').className = 'bnum-val ' + (rem < 20000 ? 'warn' : 'good');
+  document.getElementById('h-paid').textContent = fmt(paid);
+  document.getElementById('h-out').textContent = fmt(outstanding);
+  document.getElementById('main-bar').style.width = pct + '%';
+  document.getElementById('bar-pct').textContent = pct + '% committed';
+}
+
+function updateCatSummary() {
+  const fs = filteredShoots();
+  const cats = ['Talent','Location','Rentals','Misc'];
+  const totals = {};
+  cats.forEach(c => { totals[c] = fs.reduce((a,s) => a + catTotal(s.id, c), 0); });
+  const sum = Object.values(totals).reduce((a,v) => a+v, 0);
+  cats.forEach(c => {
+    const key = c.toLowerCase();
+    document.getElementById('cs-'+key).textContent = fmt(totals[c]);
+    document.getElementById('csb-'+key).style.width = (sum > 0 ? (totals[c]/sum*100).toFixed(1) : 0) + '%';
+  });
+}
+
+function shootPayStatus(shootId) {
+  const items = shootItems(shootId);
+  if (!items.length) return 'empty';
+  const paid = items.filter(li=>li.paid).length;
+  if (paid === 0) return 'unpaid';
+  if (paid === items.length) return 'paid';
+  return 'partial';
+}
+
+function renderShoots() {
+  const fs = filteredShoots();
+  const visTypes = typeFilter==='all' ? TYPES : [typeFilter];
+  const visSeasons = seasonFilter==='all' ? SEASONS : [seasonFilter];
+  const maxTotal = Math.max(...fs.map(s=>shootTotal(s.id)), 1);
+  const container = document.getElementById('shoots-container');
+
+  if (!fs.length) { container.innerHTML = '<div class="loading">No shoots match current filters.</div>'; return; }
+
+  let html = '';
+  visTypes.forEach(type => {
+    const typeKeys = visSeasons.map(season => fs.find(s => s.type===type && s.season===season)).filter(Boolean);
+    if (!typeKeys.length) return;
+    const typeSpend = typeKeys.reduce((a,s) => a+shootTotal(s.id), 0);
+    html += `<div class="type-block"><div class="type-header"><div class="type-title">${type}</div><div class="type-total">${typeSpend>0?fmt(typeSpend):'—'}</div></div>`;
+    typeKeys.forEach(shoot => {
+      const total = shootTotal(shoot.id);
+      const barW = (total/maxTotal*100).toFixed(1);
+      const status = shootPayStatus(shoot.id);
+      const isOpen = openShoot === shoot.id;
+      const cats = ['Talent','Location','Rentals','Misc'];
+      let detailHtml = '';
+      if (isOpen) {
+        const catTotals = cats.map(c => catTotal(shoot.id, c));
+        detailHtml = `<div class="shoot-detail open">
+          <div class="detail-cats">${cats.map((c,i) => `<div class="dcat"><div class="dcat-label">${c}</div><div class="dcat-val">${fmt(catTotals[i])}</div></div>`).join('')}</div>
+          <div class="li-wrap">${cats.map(cat => {
+            const items = shootItems(shoot.id).filter(li=>li.cat===cat);
+            const isAddOpen = openAddForm && openAddForm.shoot===shoot.id && openAddForm.cat===cat;
+            return `<div class="li-section">
+              <div class="li-sec-title"><span>${cat}</span><button class="btn-small" onclick="toggleAddForm('${shoot.id}','${cat}')">+ add</button></div>
+              ${items.length ? items.map(li => `<div class="li-row">
+                <div class="li-name">${li.desc}</div>
+                <div class="li-rate">${li.rate ? '$'+li.rate : ''}</div>
+                <div class="li-total">${fmtD(li.total)}</div>
+                <label class="li-paid-label ${li.paid?'yes':''}"><input type="checkbox" class="cb" ${li.paid?'checked':''} onchange="toggleLIPaid('${li.id}',this.checked)">${li.paid?'paid':'unpaid'}</label>
+                <button class="li-del" onclick="deleteLI('${li.id}','${shoot.id}')">×</button>
+              </div>`).join('') : '<div style="font-size:10px;color:var(--warm-mid);padding:4px 0">No items</div>'}
+              <div class="add-form ${isAddOpen?'open':''}">
+                <div class="add-grid">
+                  <div class="add-field"><label>Description</label><input id="af-desc-${shoot.id}-${cat}" placeholder="Vendor / item"></div>
+                  <div class="add-field"><label>Rate ($)</label><input id="af-rate-${shoot.id}-${cat}" type="number" placeholder="0.00"></div>
+                  <div class="add-field"><label>Qty</label><input id="af-qty-${shoot.id}-${cat}" type="number" value="1"></div>
+                  <div class="add-field"><label>Days</label><input id="af-days-${shoot.id}-${cat}" type="number" value="1"></div>
+                  <div class="add-field"><label>&nbsp;</label><div style="display:flex;gap:5px"><button class="btn-primary" onclick="saveNewLI('${shoot.id}','${cat}')">Add</button><button class="btn-secondary" onclick="toggleAddForm(null,null)">Cancel</button></div></div>
+                </div>
+              </div>
+            </div>`;
+          }).join('')}</div>
+        </div>`;
+      }
+      html += `<div class="shoot-card">
+        <div class="shoot-row" onclick="toggleShoot('${shoot.id}')">
+          <div><div class="shoot-name">${shoot.type}</div><div class="shoot-season">${shoot.season}</div></div>
+          <div class="shoot-mini-bar"><div class="shoot-mini-fill" style="width:${barW}%"></div></div>
+          <div class="shoot-amt">${total>0?fmt(total):'—'}</div>
+          <div class="shoot-status ${status}">${status}</div>
+          <div class="chevron ${isOpen?'open':''}">▾</div>
+        </div>${detailHtml}
+      </div>`;
+    });
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function renderOverhead() {
+  const matthew = overhead.filter(o => o.type==='Monthly Retainer');
+  const other = overhead.filter(o => o.type!=='Monthly Retainer');
+  const mPaidCount = matthew.filter(o=>o.paid).length;
+  const mPaidAmt = mPaidCount * MATTHEW_RATE;
+  const summaryClass = mPaidCount===12?'done':mPaidCount===0?'none':'partial';
+  const summaryText = mPaidCount===12?'fully paid':`${mPaidCount}/12 · ${fmt(mPaidAmt)}`;
+
+  let html = `<div class="matthew-card">
+    <div class="matthew-header" onclick="toggleMatthew()">
+      <div class="matthew-name">Matthew · photographer retainer <span style="font-size:9px;color:var(--warm-mid)">$5,500/mo</span></div>
+      <div class="matthew-total">${fmt(matthewTotal())}</div>
+      <div class="matthew-summary ${summaryClass}">${summaryText}</div>
+      <div class="chevron ${matthewOpen?'open':''}">▾</div>
+    </div>
+    <div class="matthew-months ${matthewOpen?'open':''}">
+      <div class="months-grid">${MONTHS.map(m => {
+        const rec = matthew.find(o=>o.month===m);
+        const paid = rec && rec.paid;
+        return `<div class="month-tile ${paid?'paid-m':''}" onclick="toggleMatthewMonth('${rec?rec.id:''}','${m}',${paid})">
+          <div class="month-lbl">${m.slice(0,3)}</div>
+          <div class="month-amt">$5,500</div>
+          <input type="checkbox" class="cb" ${paid?'checked':''} onclick="event.stopPropagation();toggleMatthewMonth('${rec?rec.id:''}','${m}',${paid})" style="pointer-events:none">
+        </div>`;
+      }).join('')}</div>
+      <div class="months-footer"><span>${mPaidCount} of 12 months paid</span><span class="months-footer-r">${fmt(mPaidAmt)} of ${fmt(matthewTotal())}</span></div>
+    </div>
+  </div>`;
+
+  other.forEach(o => {
+    html += `<div class="oh-row"><div class="oh-main">
+      <div class="oh-name">${o.desc}</div>
+      <div class="oh-amt">${fmt(o.amount)}</div>
+      <label class="li-paid-label ${o.paid?'yes':''}" style="justify-content:flex-end"><input type="checkbox" class="cb" ${o.paid?'checked':''} onchange="toggleOHPaid('${o.id}',this.checked)">${o.paid?'paid':'unpaid'}</label>
+      <button class="oh-del" onclick="deleteOH('${o.id}')">×</button>
+    </div></div>`;
+  });
+  document.getElementById('oh-list').innerHTML = html;
+}
+
+function render() {
+  updateHeader();
+  updateCatSummary();
+  renderShoots();
+  renderOverhead();
+}
+
+function toggleShoot(id) { openShoot = openShoot===id ? null : id; openAddForm=null; render(); }
+function toggleAddForm(shoot, cat) {
+  openAddForm = (openAddForm && openAddForm.shoot===shoot && openAddForm.cat===cat) ? null : (shoot?{shoot,cat}:null);
+  if (!openShoot && shoot) openShoot = shoot;
+  render();
+  if (openAddForm) setTimeout(() => { const el=document.getElementById(`af-desc-${shoot}-${cat}`); if(el) el.focus(); }, 50);
+}
+function toggleMatthew() { matthewOpen = !matthewOpen; renderOverhead(); }
+
+async function toggleLIPaid(id, paid) {
+  try {
+    await api('PATCH', TABLES.lineItems, id, { fields: { [FIELDS.li.paid]: paid } });
+    const li = lineItems.find(l=>l.id===id);
+    if (li) li.paid = paid;
+    updateHeader(); renderShoots(); renderOverhead();
+  } catch(e) { alert('Save failed: ' + e.message); loadData(); }
+}
+
+async function toggleOHPaid(id, paid) {
+  try {
+    await api('PATCH', TABLES.overhead, id, { fields: { [FIELDS.oh.paid]: paid } });
+    const o = overhead.find(x=>x.id===id);
+    if (o) o.paid = paid;
+    updateHeader(); renderOverhead();
+  } catch(e) { alert('Save failed: ' + e.message); loadData(); }
+}
+
+async function toggleMatthewMonth(id, month, currentlyPaid) {
+  const newPaid = !currentlyPaid;
+  try {
+    if (!id) {
+      const r = await api('POST', TABLES.overhead, '', { fields: { [FIELDS.oh.desc]: `Matthew · ${month}`, [FIELDS.oh.amount]: MATTHEW_RATE, [FIELDS.oh.type]: 'Monthly Retainer', [FIELDS.oh.month]: month, [FIELDS.oh.paid]: newPaid } });
+      overhead.push({ id:r.id, desc:`Matthew · ${month}`, amount:MATTHEW_RATE, type:'Monthly Retainer', month, paid:newPaid });
+    } else {
+      await api('PATCH', TABLES.overhead, id, { fields: { [FIELDS.oh.paid]: newPaid } });
+      const o = overhead.find(x=>x.id===id);
+      if (o) o.paid = newPaid;
+    }
+    updateHeader(); renderOverhead();
+  } catch(e) { alert('Save failed: ' + e.message); loadData(); }
+}
+
+async function saveNewLI(shootId, cat) {
+  const desc = document.getElementById(`af-desc-${shootId}-${cat}`).value.trim();
+  if (!desc) return;
+  const rate = parseFloat(document.getElementById(`af-rate-${shootId}-${cat}`).value) || 0;
+  const qty = parseFloat(document.getElementById(`af-qty-${shootId}-${cat}`).value) || 1;
+  const days = parseFloat(document.getElementById(`af-days-${shootId}-${cat}`).value) || 1;
+  const total = rate * qty * days || rate;
+  try {
+    const r = await api('POST', TABLES.lineItems, '', { fields: { [FIELDS.li.desc]:desc, [FIELDS.li.cat]:cat, [FIELDS.li.rate]:rate, [FIELDS.li.qty]:qty, [FIELDS.li.days]:days, [FIELDS.li.total]:total, [FIELDS.li.paid]:false, [FIELDS.li.shoot]:[shootId] } });
+    lineItems.push({ id:r.id, desc, cat, rate, qty, days, total, paid:false, shootIds:[shootId] });
+    openAddForm = null;
+    render();
+  } catch(e) { alert('Save failed: ' + e.message); }
+}
+
+async function deleteLI(id, shootId) {
+  if (!confirm('Delete this line item?')) return;
+  try {
+    await api('DELETE', TABLES.lineItems, id);
+    lineItems = lineItems.filter(li=>li.id!==id);
+    render();
+  } catch(e) { alert('Delete failed: ' + e.message); }
+}
+
+async function deleteOH(id) {
+  if (!confirm('Delete this overhead item?')) return;
+  try {
+    await api('DELETE', TABLES.overhead, id);
+    overhead = overhead.filter(o=>o.id!==id);
+    render();
+  } catch(e) { alert('Delete failed: ' + e.message); }
+}
+
+async function addOverhead() {
+  const desc = document.getElementById('oh-desc').value.trim();
+  const amount = parseFloat(document.getElementById('oh-amount').value) || 0;
+  if (!desc) return;
+  try {
+    const r = await api('POST', TABLES.overhead, '', { fields: { [FIELDS.oh.desc]:desc, [FIELDS.oh.amount]:amount, [FIELDS.oh.type]:'One-Time', [FIELDS.oh.paid]:false } });
+    overhead.push({ id:r.id, desc, amount, type:'One-Time', month:'', paid:false });
+    document.getElementById('oh-desc').value=''; document.getElementById('oh-amount').value='';
+    document.getElementById('oh-form').classList.remove('open');
+    render();
+  } catch(e) { alert('Save failed: ' + e.message); }
+}
+
+document.getElementById('season-nav').addEventListener('click', e => {
+  const btn = e.target.closest('[data-season]');
+  if (!btn) return;
+  seasonFilter = btn.dataset.season;
+  document.querySelectorAll('#season-nav .nbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+});
+
+document.getElementById('type-nav').addEventListener('click', e => {
+  const btn = e.target.closest('[data-type]');
+  if (!btn) return;
+  typeFilter = btn.dataset.type;
+  document.querySelectorAll('#type-nav .nbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+});
+
+document.getElementById('add-oh-btn').addEventListener('click', () => {
+  document.getElementById('oh-form').classList.toggle('open');
+  if (document.getElementById('oh-form').classList.contains('open')) setTimeout(()=>document.getElementById('oh-desc').focus(),50);
+});
+document.getElementById('oh-save').addEventListener('click', addOverhead);
+document.getElementById('oh-cancel').addEventListener('click', () => document.getElementById('oh-form').classList.remove('open'));
+
+loadData();
+</script>
+</body>
+</html>
