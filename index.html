@@ -32,11 +32,11 @@ body{background:var(--cream);color:var(--ink);font-family:var(--font-mono);font-
 .nbtn.active{background:var(--ink);color:var(--cream);border-color:var(--ink)}
 .nav-sep{width:0.5px;background:var(--warm-light);align-self:stretch}
 .cat-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--warm-light);border:0.5px solid var(--warm-light);border-radius:2px;margin-bottom:2rem;overflow:hidden}
-.ccat{background:var(--cream);padding:.6rem .75rem}
-.ccat-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--warm-mid);margin-bottom:2px}
-.ccat-val{font-family:var(--font-display);font-size:18px;font-weight:300}
-.ccat-bar{height:1px;background:var(--warm-lighter);margin-top:6px;overflow:hidden}
-.ccat-bar-fill{height:1px;background:var(--accent-dark)}
+.cs{background:var(--cream);padding:.6rem .75rem}
+.cs-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--warm-mid);margin-bottom:2px}
+.cs-val{font-family:var(--font-display);font-size:18px;font-weight:300}
+.cs-bar{height:1px;background:var(--warm-lighter);margin-top:6px;overflow:hidden}
+.cs-bar-fill{height:1px;background:var(--accent-dark)}
 .section-label{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--warm-mid);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:0.5px solid var(--warm-light);display:flex;justify-content:space-between;align-items:baseline}
 .type-block{margin-bottom:2.5rem}
 .type-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:0.5px solid var(--warm-light)}
@@ -130,7 +130,7 @@ body{background:var(--cream);color:var(--ink);font-family:var(--font-mono);font-
         <div style="font-family:var(--font-display);font-size:28px;font-weight:300">$200,000</div>
       </div>
     </div>
-    <div class="budget-nums" id="budget-nums">
+    <div class="budget-nums">
       <div class="bnum"><div class="bnum-label">Total committed</div><div class="bnum-val" id="h-spent">—</div></div>
       <div class="bnum"><div class="bnum-label">Remaining</div><div class="bnum-val" id="h-rem">—</div></div>
       <div class="bnum"><div class="bnum-label">Paid out</div><div class="bnum-val" id="h-paid">—</div></div>
@@ -156,15 +156,14 @@ body{background:var(--cream);color:var(--ink);font-family:var(--font-mono);font-
       <button class="nbtn" data-type="Content">Content</button>
     </div>
   </div>
-  <div class="cat-summary" id="cat-summary">
-    <div class="ccat"><div class="ccat-label">Talent</div><div class="ccat-val" id="cs-talent">—</div><div class="ccat-bar"><div class="ccat-bar-fill" id="csb-talent" style="width:0%"></div></div></div>
-    <div class="ccat"><div class="ccat-label">Location</div><div class="ccat-val" id="cs-location">—</div><div class="ccat-bar"><div class="ccat-bar-fill" id="csb-location" style="width:0%"></div></div></div>
-    <div class="ccat"><div class="ccat-label">Rentals</div><div class="ccat-val" id="cs-rentals">—</div><div class="ccat-bar"><div class="ccat-bar-fill" id="csb-rentals" style="width:0%"></div></div></div>
-    <div class="ccat"><div class="ccat-label">Misc</div><div class="ccat-val" id="cs-misc">—</div><div class="ccat-bar"><div class="ccat-bar-fill" id="csb-misc" style="width:0%"></div></div></div>
+  <div class="cat-summary">
+    <div class="cs"><div class="cs-label">Talent</div><div class="cs-val" id="cs-Talent">—</div><div class="cs-bar"><div class="cs-bar-fill" id="csb-Talent" style="width:0%"></div></div></div>
+    <div class="cs"><div class="cs-label">Location</div><div class="cs-val" id="cs-Location">—</div><div class="cs-bar"><div class="cs-bar-fill" id="csb-Location" style="width:0%"></div></div></div>
+    <div class="cs"><div class="cs-label">Rentals</div><div class="cs-val" id="cs-Rentals">—</div><div class="cs-bar"><div class="cs-bar-fill" id="csb-Rentals" style="width:0%"></div></div></div>
+    <div class="cs"><div class="cs-label">Misc</div><div class="cs-val" id="cs-Misc">—</div><div class="cs-bar"><div class="cs-bar-fill" id="csb-Misc" style="width:0%"></div></div></div>
   </div>
-  <div id="debug-out" style="font-size:10px;font-family:monospace;background:#f5f0e8;padding:8px 12px;margin-bottom:12px;border:1px solid #ccc;border-radius:2px;line-height:1.6"></div>
   <div id="shoots-container"><div class="loading">Loading shoots...</div></div>
-  <div class="oh-section" id="oh-section">
+  <div class="oh-section">
     <div class="section-label"><span>Overhead &amp; fixed costs</span><button class="btn-small" id="add-oh-btn">+ add line</button></div>
     <div id="oh-list"><div class="loading">Loading overhead...</div></div>
     <div class="add-form" id="oh-form">
@@ -183,214 +182,230 @@ body{background:var(--cream);color:var(--ink);font-family:var(--font-mono);font-
 const PROXY = 'https://sablyn-budget-proxy.itsme-5cf.workers.dev';
 const BASE_ID = 'appEPuHeDmRhiTIig';
 const TABLES = {shoots:'tblD4slShJJkraZwb',lineItems:'tbldxIthZkL8oCTQV',overhead:'tbltLik6uj2uMHwIB'};
-const F = {
-  s:{name:'fld3Mp9qJo5cOxGQz',type:'fldJvFySVFOcJvoUn',season:'fldNjDIisPde6zJdr',status:'fldXX2JU3YmwzcrfV'},
-  li:{desc:'fld5JGXvPqxlMStQN',cat:'fldjA3X6vkQqU0ild',rate:'fldl0N1t7s6rXndDf',qty:'fld2LD4bok7Cvxrzt',days:'fld1A8qpLCsLHMPvw',total:'fldL3Vfu7uYtJUB4Q',paid:'fldfjZvSVm2MTtmdL',shoot:'fldq71lUiOW2HHoGO'},
-  oh:{desc:'flduwDtfTLBsFU5s0',amount:'fldMqvs1iMfCLmqtF',type:'fldvsAYoCrvlZttiK',month:'fldx73GHgYE3zKwWl',paid:'fldQDd9SkdWvsiK67'}
-};
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const BUDGET=200000,MATTHEW=5500;
 const TYPES=['ECOM','JOOR','Lookbook','Content'];
 const SEASONS=['Spring 26','Pre-Fall 26','Fall 26','Holiday 26'];
+const CATS=['Talent','Location','Rentals','Misc'];
 
-let shoots=[],lineItems=[],overhead=[];
-let openShoot=null,openAddForm=null,matthewOpen=false;
-let sf='all',tf='all';
+// Field name helpers — proxy returns fields by NAME not ID
+const sv = (f, key) => { const v = f[key]; if (v == null) return null; if (typeof v === 'object' && !Array.isArray(v) && v.name) return v.name; return v; };
+const ids = (f, key) => { const v = f[key]; if (!Array.isArray(v)) return []; return v.map(x => typeof x === 'object' ? x.id : x); };
 
-const fmt=n=>n==null?'—':'$'+Math.round(n).toLocaleString('en-US');
-const fmtD=n=>n==null?'—':'$'+parseFloat(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:2});
-const fv=(f,key)=>{const v=f[key];if(v==null)return null;if(typeof v==='object'&&!Array.isArray(v))return v.name;return v;};
-const fids=(f,key)=>{const v=f[key];if(!Array.isArray(v))return[];return v.map(x=>typeof x==='object'?x.id:x);};
+let shoots=[], lineItems=[], overhead=[];
+let openShoot=null, openAddForm=null, matthewOpen=false;
+let sf='all', tf='all';
 
-async function api(method,table,id='',body=null,params=''){
-  const url=`${PROXY}/v0/${BASE_ID}/${table}${id?'/'+id:''}${params}`;
-  const opts={method,headers:{'Content-Type':'application/json'}};
-  if(body)opts.body=JSON.stringify(body);
-  const r=await fetch(url,opts);
-  if(!r.ok)throw new Error(await r.text());
+const fmt = n => n==null ? '—' : '$'+Math.round(n).toLocaleString('en-US');
+const fmtD = n => n==null ? '—' : '$'+parseFloat(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:2});
+
+async function api(method, table, id='', body=null, params='') {
+  const url = `${PROXY}/v0/${BASE_ID}/${table}${id?'/'+id:''}${params}`;
+  const opts = {method, headers:{'Content-Type':'application/json'}};
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
 
-async function fetchAll(table){
-  let records=[],offset='';
-  do{
-    const r=await api('GET',table,'',null,offset?`?offset=${offset}`:'');
-    records=records.concat(r.records);
-    offset=r.offset||'';
-  }while(offset);
+async function fetchAll(table) {
+  let records=[], offset='';
+  do {
+    const r = await api('GET', table, '', null, offset ? `?offset=${offset}` : '');
+    records = records.concat(r.records);
+    offset = r.offset || '';
+  } while (offset);
   return records;
 }
 
-async function loadData(){
-  try{
-    const[s,l,o]=await Promise.all([fetchAll(TABLES.shoots),fetchAll(TABLES.lineItems),fetchAll(TABLES.overhead)]);
-    shoots=s.map(r=>({id:r.id,name:r.fields[F.s.name]||'',type:fv(r.fields,F.s.type)||'',season:fv(r.fields,F.s.season)||'',status:fv(r.fields,F.s.status)||''}));
-    lineItems=l.map(r=>({id:r.id,desc:r.fields[F.li.desc]||'',cat:fv(r.fields,F.li.cat)||'',rate:r.fields[F.li.rate]||0,qty:r.fields[F.li.qty]||1,days:r.fields[F.li.days]||1,total:r.fields[F.li.total]||0,paid:r.fields[F.li.paid]||false,shootIds:fids(r.fields,F.li.shoot)}));
-    overhead=o.map(r=>({id:r.id,desc:r.fields[F.oh.desc]||'',amount:r.fields[F.oh.amount]||0,type:fv(r.fields,F.oh.type)||'',month:fv(r.fields,F.oh.month)||'',paid:r.fields[F.oh.paid]||false}));
-    // DEBUG — remove after fix
-    console.log('Shoots loaded:', shoots.length, shoots.slice(0,3).map(s=>({name:s.name,type:s.type,season:s.season})));
-    console.log('Line items loaded:', lineItems.length, lineItems.slice(0,2).map(li=>({desc:li.desc,cat:li.cat,shootIds:li.shootIds})));
-    const debugEl=document.getElementById('debug-out');
-    if(debugEl){
-      const sample=shoots.slice(0,4).map(s=>`id:${s.id.slice(-6)} | type:"${s.type}" | season:"${s.season}"`).join('<br>');
-      const typeCheck=`TYPES match: ${shoots.map(s=>TYPES.includes(s.type)?'✓':'✗ "'+s.type+'"').join(', ')}`;
-      debugEl.innerHTML=`<b>Shoots (${shoots.length}):</b><br>${sample}<br><br><b>${typeCheck}</b>`;
-    }
+async function loadData() {
+  try {
+    const [s, l, o] = await Promise.all([fetchAll(TABLES.shoots), fetchAll(TABLES.lineItems), fetchAll(TABLES.overhead)]);
+    shoots = s.map(r => ({
+      id: r.id,
+      name: r.fields['Shoot Name'] || '',
+      type: sv(r.fields, 'Type') || '',
+      season: sv(r.fields, 'Season') || '',
+      status: sv(r.fields, 'Status') || ''
+    }));
+    lineItems = l.map(r => ({
+      id: r.id,
+      desc: r.fields['Description'] || '',
+      cat: sv(r.fields, 'Category') || '',
+      rate: r.fields['Rate'] || 0,
+      qty: r.fields['Qty'] || 1,
+      days: r.fields['Days'] || 1,
+      total: r.fields['Total'] || 0,
+      paid: r.fields['Paid'] || false,
+      shootIds: ids(r.fields, 'Shoot')
+    }));
+    overhead = o.map(r => ({
+      id: r.id,
+      desc: r.fields['Description'] || '',
+      amount: r.fields['Amount'] || 0,
+      type: sv(r.fields, 'Type') || '',
+      month: sv(r.fields, 'Month') || '',
+      paid: r.fields['Paid'] || false
+    }));
     render();
-  }catch(e){
-    document.getElementById('shoots-container').innerHTML=`<div class="error-msg">Failed to load data. ${e.message}</div>`;
+  } catch(e) {
+    document.getElementById('shoots-container').innerHTML = `<div class="error-msg">Failed to load: ${e.message}</div>`;
   }
 }
 
-const shootItems=id=>lineItems.filter(li=>li.shootIds.includes(id));
-const shootTotal=id=>shootItems(id).reduce((a,li)=>a+li.total,0);
-const catTotal=(id,cat)=>shootItems(id).filter(li=>li.cat===cat).reduce((a,li)=>a+li.total,0);
-const matthewPaid=()=>overhead.filter(o=>o.type==='Monthly Retainer'&&o.paid).length*MATTHEW;
-const matthewTotal=()=>12*MATTHEW;
-const totalSpent=()=>shoots.reduce((a,s)=>a+shootTotal(s.id),0)+overhead.filter(o=>o.type!=='Monthly Retainer').reduce((a,o)=>a+o.amount,0)+matthewTotal();
-const totalPaid=()=>lineItems.filter(li=>li.paid).reduce((a,li)=>a+li.total,0)+overhead.filter(o=>o.paid&&o.type!=='Monthly Retainer').reduce((a,o)=>a+o.amount,0)+matthewPaid();
-const filteredShoots=()=>shoots.filter(s=>(sf==='all'||s.season===sf)&&(tf==='all'||s.type===tf));
+const shootItems = id => lineItems.filter(li => li.shootIds.includes(id));
+const shootTotal = id => shootItems(id).reduce((a,li) => a+li.total, 0);
+const catTotal = (id,cat) => shootItems(id).filter(li => li.cat===cat).reduce((a,li) => a+li.total, 0);
+const matthewPaid = () => overhead.filter(o => o.type==='Monthly Retainer' && o.paid).length * MATTHEW;
+const matthewTotal = () => 12 * MATTHEW;
+const totalSpent = () => shoots.reduce((a,s) => a+shootTotal(s.id), 0) + overhead.filter(o => o.type!=='Monthly Retainer').reduce((a,o) => a+o.amount, 0) + matthewTotal();
+const totalPaid = () => lineItems.filter(li => li.paid).reduce((a,li) => a+li.total, 0) + overhead.filter(o => o.paid && o.type!=='Monthly Retainer').reduce((a,o) => a+o.amount, 0) + matthewPaid();
+const filteredShoots = () => shoots.filter(s => (sf==='all' || s.season===sf) && (tf==='all' || s.type===tf));
 
-function updateHeader(){
-  const spent=totalSpent(),paid=totalPaid(),rem=BUDGET-spent;
-  const pct=Math.min(100,(spent/BUDGET*100)).toFixed(1);
-  document.getElementById('h-spent').textContent=fmt(spent);
-  document.getElementById('h-rem').textContent=fmt(rem);
-  document.getElementById('h-rem').className='bnum-val '+(rem<20000?'warn':'good');
-  document.getElementById('h-paid').textContent=fmt(paid);
-  document.getElementById('h-out').textContent=fmt(spent-paid);
-  document.getElementById('main-bar').style.width=pct+'%';
-  document.getElementById('bar-pct').textContent=pct+'% committed';
+function updateHeader() {
+  const spent=totalSpent(), paid=totalPaid(), rem=BUDGET-spent;
+  const pct = Math.min(100,(spent/BUDGET*100)).toFixed(1);
+  document.getElementById('h-spent').textContent = fmt(spent);
+  document.getElementById('h-rem').textContent = fmt(rem);
+  document.getElementById('h-rem').className = 'bnum-val '+(rem<20000?'warn':'good');
+  document.getElementById('h-paid').textContent = fmt(paid);
+  document.getElementById('h-out').textContent = fmt(spent-paid);
+  document.getElementById('main-bar').style.width = pct+'%';
+  document.getElementById('bar-pct').textContent = pct+'% committed';
 }
 
-function updateCatSummary(){
-  const fs=filteredShoots();
-  const cats=['Talent','Location','Rentals','Misc'];
-  const totals={};
-  cats.forEach(c=>{totals[c]=fs.reduce((a,s)=>a+catTotal(s.id,c),0);});
-  const sum=Object.values(totals).reduce((a,v)=>a+v,0);
-  cats.forEach(c=>{
-    const key=c.toLowerCase();
-    document.getElementById('cs-'+key).textContent=fmt(totals[c]);
-    document.getElementById('csb-'+key).style.width=(sum>0?(totals[c]/sum*100).toFixed(1):0)+'%';
+function updateCatSummary() {
+  const fs = filteredShoots();
+  const totals = {};
+  CATS.forEach(c => { totals[c] = fs.reduce((a,s) => a+catTotal(s.id,c), 0); });
+  const sum = Object.values(totals).reduce((a,v) => a+v, 0);
+  CATS.forEach(c => {
+    document.getElementById('cs-'+c).textContent = fmt(totals[c]);
+    document.getElementById('csb-'+c).style.width = (sum>0 ? (totals[c]/sum*100).toFixed(1) : 0)+'%';
   });
 }
 
-function shootPayStatus(id){
-  const items=shootItems(id);
-  if(!items.length)return'empty';
-  const paid=items.filter(li=>li.paid).length;
-  if(paid===0)return'unpaid';
-  if(paid===items.length)return'paid';
-  return'partial';
+function shootPayStatus(id) {
+  const items = shootItems(id);
+  if (!items.length) return 'empty';
+  const paid = items.filter(li => li.paid).length;
+  if (paid===0) return 'unpaid';
+  if (paid===items.length) return 'paid';
+  return 'partial';
 }
 
-function renderShoots(){
-  const fs=filteredShoots();
-  const visTypes=tf==='all'?TYPES:[tf];
-  const visSeasons=sf==='all'?SEASONS:[sf];
-  const maxTotal=Math.max(...fs.map(s=>shootTotal(s.id)),1);
-  const container=document.getElementById('shoots-container');
-  if(!fs.length){container.innerHTML='<div class="loading">No shoots match current filters.</div>';return;}
-  let html='';
-  visTypes.forEach(type=>{
-    const typeKeys=visSeasons.map(season=>fs.find(s=>s.type===type&&s.season===season)).filter(Boolean);
-    if(!typeKeys.length)return;
-    const typeSpend=typeKeys.reduce((a,s)=>a+shootTotal(s.id),0);
-    html+=`<div class="type-block"><div class="type-header"><div class="type-title">${type}</div><div class="type-total">${typeSpend>0?fmt(typeSpend):'—'}</div></div>`;
-    typeKeys.forEach(shoot=>{
-      const total=shootTotal(shoot.id);
-      const barW=(total/maxTotal*100).toFixed(1);
-      const status=shootPayStatus(shoot.id);
-      const isOpen=openShoot===shoot.id;
-      const cats=['Talent','Location','Rentals','Misc'];
-      let detailHtml='';
-      if(isOpen){
-        detailHtml=`<div class="shoot-detail open"><div class="detail-cats">${cats.map(c=>`<div class="dcat"><div class="dcat-label">${c}</div><div class="dcat-val">${fmt(catTotal(shoot.id,c))}</div></div>`).join('')}</div><div class="li-wrap">${cats.map(cat=>{
-          const items=shootItems(shoot.id).filter(li=>li.cat===cat);
-          const isAddOpen=openAddForm&&openAddForm.shoot===shoot.id&&openAddForm.cat===cat;
-          return`<div class="li-section"><div class="li-sec-title"><span>${cat}</span><button class="btn-small" onclick="toggleAddForm('${shoot.id}','${cat}')">+ add</button></div>${items.length?items.map(li=>`<div class="li-row"><div class="li-name">${li.desc}</div><div class="li-rate">${li.rate?'$'+li.rate:''}</div><div class="li-total">${fmtD(li.total)}</div><label class="li-paid-label ${li.paid?'yes':''}"><input type="checkbox" class="cb" ${li.paid?'checked':''} onchange="toggleLIPaid('${li.id}',this.checked)">${li.paid?'paid':'unpaid'}</label><button class="li-del" onclick="deleteLI('${li.id}')">×</button></div>`).join(''):'<div style="font-size:10px;color:var(--warm-mid);padding:4px 0">No items</div>'}<div class="add-form ${isAddOpen?'open':''}"><div class="add-grid"><div class="add-field"><label>Description</label><input id="af-desc-${shoot.id}-${cat}" placeholder="Vendor / item"></div><div class="add-field"><label>Rate ($)</label><input id="af-rate-${shoot.id}-${cat}" type="number" placeholder="0.00"></div><div class="add-field"><label>Qty</label><input id="af-qty-${shoot.id}-${cat}" type="number" value="1"></div><div class="add-field"><label>Days</label><input id="af-days-${shoot.id}-${cat}" type="number" value="1"></div><div class="add-field"><label>&nbsp;</label><div style="display:flex;gap:5px"><button class="btn-primary" onclick="saveNewLI('${shoot.id}','${cat}')">Add</button><button class="btn-secondary" onclick="toggleAddForm(null,null)">Cancel</button></div></div></div></div></div>`;
+function renderShoots() {
+  const fs = filteredShoots();
+  const visTypes = tf==='all' ? TYPES : [tf];
+  const visSeasons = sf==='all' ? SEASONS : [sf];
+  const maxTotal = Math.max(...fs.map(s => shootTotal(s.id)), 1);
+  const container = document.getElementById('shoots-container');
+  if (!fs.length) { container.innerHTML='<div class="loading">No shoots match current filters.</div>'; return; }
+  let html = '';
+  visTypes.forEach(type => {
+    const typeKeys = visSeasons.map(season => fs.find(s => s.type===type && s.season===season)).filter(Boolean);
+    if (!typeKeys.length) return;
+    const typeSpend = typeKeys.reduce((a,s) => a+shootTotal(s.id), 0);
+    html += `<div class="type-block"><div class="type-header"><div class="type-title">${type}</div><div class="type-total">${typeSpend>0?fmt(typeSpend):'—'}</div></div>`;
+    typeKeys.forEach(shoot => {
+      const total = shootTotal(shoot.id);
+      const barW = (total/maxTotal*100).toFixed(1);
+      const status = shootPayStatus(shoot.id);
+      const isOpen = openShoot === shoot.id;
+      let detailHtml = '';
+      if (isOpen) {
+        detailHtml = `<div class="shoot-detail open"><div class="detail-cats">${CATS.map(c=>`<div class="dcat"><div class="dcat-label">${c}</div><div class="dcat-val">${fmt(catTotal(shoot.id,c))}</div></div>`).join('')}</div><div class="li-wrap">${CATS.map(cat => {
+          const items = shootItems(shoot.id).filter(li => li.cat===cat);
+          const isAddOpen = openAddForm && openAddForm.shoot===shoot.id && openAddForm.cat===cat;
+          return `<div class="li-section"><div class="li-sec-title"><span>${cat}</span><button class="btn-small" onclick="toggleAddForm('${shoot.id}','${cat}')">+ add</button></div>${items.length ? items.map(li=>`<div class="li-row"><div class="li-name">${li.desc}</div><div class="li-rate">${li.rate?'$'+li.rate:''}</div><div class="li-total">${fmtD(li.total)}</div><label class="li-paid-label ${li.paid?'yes':''}"><input type="checkbox" class="cb" ${li.paid?'checked':''} onchange="toggleLIPaid('${li.id}',this.checked)">${li.paid?'paid':'unpaid'}</label><button class="li-del" onclick="deleteLI('${li.id}')">×</button></div>`).join('') : '<div style="font-size:10px;color:var(--warm-mid);padding:4px 0">No items</div>'}<div class="add-form ${isAddOpen?'open':''}"><div class="add-grid"><div class="add-field"><label>Description</label><input id="af-desc-${shoot.id}-${cat}" placeholder="Vendor / item"></div><div class="add-field"><label>Rate ($)</label><input id="af-rate-${shoot.id}-${cat}" type="number" placeholder="0.00"></div><div class="add-field"><label>Qty</label><input id="af-qty-${shoot.id}-${cat}" type="number" value="1"></div><div class="add-field"><label>Days</label><input id="af-days-${shoot.id}-${cat}" type="number" value="1"></div><div class="add-field"><label>&nbsp;</label><div style="display:flex;gap:5px"><button class="btn-primary" onclick="saveNewLI('${shoot.id}','${cat}')">Add</button><button class="btn-secondary" onclick="toggleAddForm(null,null)">Cancel</button></div></div></div></div></div>`;
         }).join('')}</div></div>`;
       }
-      html+=`<div class="shoot-card"><div class="shoot-row" onclick="toggleShoot('${shoot.id}')"><div><div class="shoot-name">${shoot.type}</div><div class="shoot-season">${shoot.season}</div></div><div class="shoot-mini-bar"><div class="shoot-mini-fill" style="width:${barW}%"></div></div><div class="shoot-amt">${total>0?fmt(total):'—'}</div><div class="shoot-status ${status}">${status}</div><div class="chevron ${isOpen?'open':''}">▾</div></div>${detailHtml}</div>`;
+      html += `<div class="shoot-card"><div class="shoot-row" onclick="toggleShoot('${shoot.id}')"><div><div class="shoot-name">${shoot.type}</div><div class="shoot-season">${shoot.season}</div></div><div class="shoot-mini-bar"><div class="shoot-mini-fill" style="width:${barW}%"></div></div><div class="shoot-amt">${total>0?fmt(total):'—'}</div><div class="shoot-status ${status}">${status}</div><div class="chevron ${isOpen?'open':''}">▾</div></div>${detailHtml}</div>`;
     });
-    html+='</div>';
+    html += '</div>';
   });
-  container.innerHTML=html;
+  container.innerHTML = html;
 }
 
-function renderOverhead(){
-  const matthew=overhead.filter(o=>o.type==='Monthly Retainer');
-  const other=overhead.filter(o=>o.type!=='Monthly Retainer');
-  const mPaidCount=matthew.filter(o=>o.paid).length;
-  const mPaidAmt=mPaidCount*MATTHEW;
-  const summaryClass=mPaidCount===12?'done':mPaidCount===0?'none':'partial';
-  const summaryText=mPaidCount===12?'fully paid':`${mPaidCount}/12 · ${fmt(mPaidAmt)}`;
-  let html=`<div class="matthew-card"><div class="matthew-header" onclick="toggleMatthew()"><div class="matthew-name">Matthew · photographer retainer <span style="font-size:9px;color:var(--warm-mid)">$5,500/mo</span></div><div class="matthew-total">${fmt(matthewTotal())}</div><div class="matthew-summary ${summaryClass}">${summaryText}</div><div class="chevron ${matthewOpen?'open':''}">▾</div></div><div class="matthew-months ${matthewOpen?'open':''}"><div class="months-grid">${MONTHS.map(m=>{const rec=matthew.find(o=>o.month===m);const paid=rec&&rec.paid;return`<div class="month-tile ${paid?'paid-m':''}" onclick="toggleMatthewMonth('${rec?rec.id:''}','${m}',${paid})"><div class="month-lbl">${m.slice(0,3)}</div><div class="month-amt">$5,500</div><input type="checkbox" class="cb" ${paid?'checked':''} style="pointer-events:none"></div>`;}).join('')}</div><div class="months-footer"><span>${mPaidCount} of 12 months paid</span><span class="months-footer-r">${fmt(mPaidAmt)} of ${fmt(matthewTotal())}</span></div></div></div>`;
-  other.forEach(o=>{html+=`<div class="oh-row"><div class="oh-main"><div class="oh-name">${o.desc}</div><div class="oh-amt">${fmt(o.amount)}</div><label class="li-paid-label ${o.paid?'yes':''}" style="justify-content:flex-end"><input type="checkbox" class="cb" ${o.paid?'checked':''} onchange="toggleOHPaid('${o.id}',this.checked)">${o.paid?'paid':'unpaid'}</label><button class="oh-del" onclick="deleteOH('${o.id}')">×</button></div></div>`;});
-  document.getElementById('oh-list').innerHTML=html;
+function renderOverhead() {
+  const matthew = overhead.filter(o => o.type==='Monthly Retainer');
+  const other = overhead.filter(o => o.type!=='Monthly Retainer');
+  const mPaidCount = matthew.filter(o => o.paid).length;
+  const mPaidAmt = mPaidCount * MATTHEW;
+  const summaryClass = mPaidCount===12 ? 'done' : mPaidCount===0 ? 'none' : 'partial';
+  const summaryText = mPaidCount===12 ? 'fully paid' : `${mPaidCount}/12 · ${fmt(mPaidAmt)}`;
+  let html = `<div class="matthew-card"><div class="matthew-header" onclick="toggleMatthew()"><div class="matthew-name">Matthew · photographer retainer <span style="font-size:9px;color:var(--warm-mid)">$5,500/mo</span></div><div class="matthew-total">${fmt(matthewTotal())}</div><div class="matthew-summary ${summaryClass}">${summaryText}</div><div class="chevron ${matthewOpen?'open':''}">▾</div></div><div class="matthew-months ${matthewOpen?'open':''}"><div class="months-grid">${MONTHS.map(m=>{const rec=matthew.find(o=>o.month===m);const paid=rec&&rec.paid;return`<div class="month-tile ${paid?'paid-m':''}" onclick="toggleMatthewMonth('${rec?rec.id:''}','${m}',${!!paid})"><div class="month-lbl">${m.slice(0,3)}</div><div class="month-amt">$5,500</div><input type="checkbox" class="cb" ${paid?'checked':''} style="pointer-events:none"></div>`;}).join('')}</div><div class="months-footer"><span>${mPaidCount} of 12 months paid</span><span class="months-footer-r">${fmt(mPaidAmt)} of ${fmt(matthewTotal())}</span></div></div></div>`;
+  other.forEach(o => { html += `<div class="oh-row"><div class="oh-main"><div class="oh-name">${o.desc}</div><div class="oh-amt">${fmt(o.amount)}</div><label class="li-paid-label ${o.paid?'yes':''}" style="justify-content:flex-end"><input type="checkbox" class="cb" ${o.paid?'checked':''} onchange="toggleOHPaid('${o.id}',this.checked)">${o.paid?'paid':'unpaid'}</label><button class="oh-del" onclick="deleteOH('${o.id}')">×</button></div></div>`; });
+  document.getElementById('oh-list').innerHTML = html;
 }
 
-function render(){updateHeader();updateCatSummary();renderShoots();renderOverhead();}
+function render() { updateHeader(); updateCatSummary(); renderShoots(); renderOverhead(); }
 
-function toggleShoot(id){openShoot=openShoot===id?null:id;openAddForm=null;render();}
-function toggleAddForm(shoot,cat){
-  openAddForm=(openAddForm&&openAddForm.shoot===shoot&&openAddForm.cat===cat)?null:(shoot?{shoot,cat}:null);
-  if(!openShoot&&shoot)openShoot=shoot;
+function toggleShoot(id) { openShoot = openShoot===id ? null : id; openAddForm=null; render(); }
+function toggleAddForm(shoot,cat) {
+  openAddForm = (openAddForm && openAddForm.shoot===shoot && openAddForm.cat===cat) ? null : (shoot ? {shoot,cat} : null);
+  if (!openShoot && shoot) openShoot = shoot;
   render();
-  if(openAddForm)setTimeout(()=>{const el=document.getElementById(`af-desc-${shoot}-${cat}`);if(el)el.focus();},50);
+  if (openAddForm) setTimeout(() => { const el=document.getElementById(`af-desc-${shoot}-${cat}`); if(el) el.focus(); }, 50);
 }
-function toggleMatthew(){matthewOpen=!matthewOpen;renderOverhead();}
+function toggleMatthew() { matthewOpen = !matthewOpen; renderOverhead(); }
 
-async function toggleLIPaid(id,paid){
-  try{await api('PATCH',TABLES.lineItems,id,{fields:{[F.li.paid]:paid}});const li=lineItems.find(l=>l.id===id);if(li)li.paid=paid;updateHeader();renderShoots();renderOverhead();}
-  catch(e){alert('Save failed: '+e.message);loadData();}
+async function toggleLIPaid(id, paid) {
+  try { await api('PATCH', TABLES.lineItems, id, {fields:{'Paid':paid}}); const li=lineItems.find(l=>l.id===id); if(li) li.paid=paid; updateHeader(); renderShoots(); renderOverhead(); }
+  catch(e) { alert('Save failed: '+e.message); loadData(); }
 }
-async function toggleOHPaid(id,paid){
-  try{await api('PATCH',TABLES.overhead,id,{fields:{[F.oh.paid]:paid}});const o=overhead.find(x=>x.id===id);if(o)o.paid=paid;updateHeader();renderOverhead();}
-  catch(e){alert('Save failed: '+e.message);loadData();}
+async function toggleOHPaid(id, paid) {
+  try { await api('PATCH', TABLES.overhead, id, {fields:{'Paid':paid}}); const o=overhead.find(x=>x.id===id); if(o) o.paid=paid; updateHeader(); renderOverhead(); }
+  catch(e) { alert('Save failed: '+e.message); loadData(); }
 }
-async function toggleMatthewMonth(id,month,currentlyPaid){
-  const newPaid=!currentlyPaid;
-  try{
-    if(!id){const r=await api('POST',TABLES.overhead,'',{fields:{[F.oh.desc]:`Matthew · ${month}`,[F.oh.amount]:MATTHEW,[F.oh.type]:'Monthly Retainer',[F.oh.month]:month,[F.oh.paid]:newPaid}});overhead.push({id:r.id,desc:`Matthew · ${month}`,amount:MATTHEW,type:'Monthly Retainer',month,paid:newPaid});}
-    else{await api('PATCH',TABLES.overhead,id,{fields:{[F.oh.paid]:newPaid}});const o=overhead.find(x=>x.id===id);if(o)o.paid=newPaid;}
-    updateHeader();renderOverhead();
-  }catch(e){alert('Save failed: '+e.message);loadData();}
+async function toggleMatthewMonth(id, month, currentlyPaid) {
+  const newPaid = !currentlyPaid;
+  try {
+    if (!id) { const r=await api('POST', TABLES.overhead, '', {fields:{'Description':`Matthew · ${month}`,'Amount':MATTHEW,'Type':'Monthly Retainer','Month':month,'Paid':newPaid}}); overhead.push({id:r.id,desc:`Matthew · ${month}`,amount:MATTHEW,type:'Monthly Retainer',month,paid:newPaid}); }
+    else { await api('PATCH', TABLES.overhead, id, {fields:{'Paid':newPaid}}); const o=overhead.find(x=>x.id===id); if(o) o.paid=newPaid; }
+    updateHeader(); renderOverhead();
+  } catch(e) { alert('Save failed: '+e.message); loadData(); }
 }
-async function saveNewLI(shootId,cat){
-  const desc=document.getElementById(`af-desc-${shootId}-${cat}`).value.trim();
-  if(!desc)return;
-  const rate=parseFloat(document.getElementById(`af-rate-${shootId}-${cat}`).value)||0;
-  const qty=parseFloat(document.getElementById(`af-qty-${shootId}-${cat}`).value)||1;
-  const days=parseFloat(document.getElementById(`af-days-${shootId}-${cat}`).value)||1;
-  const total=rate*qty*days||rate;
-  try{const r=await api('POST',TABLES.lineItems,'',{fields:{[F.li.desc]:desc,[F.li.cat]:cat,[F.li.rate]:rate,[F.li.qty]:qty,[F.li.days]:days,[F.li.total]:total,[F.li.paid]:false,[F.li.shoot]:[shootId]}});lineItems.push({id:r.id,desc,cat,rate,qty,days,total,paid:false,shootIds:[shootId]});openAddForm=null;render();}
-  catch(e){alert('Save failed: '+e.message);}
+async function saveNewLI(shootId, cat) {
+  const desc = document.getElementById(`af-desc-${shootId}-${cat}`).value.trim();
+  if (!desc) return;
+  const rate = parseFloat(document.getElementById(`af-rate-${shootId}-${cat}`).value) || 0;
+  const qty = parseFloat(document.getElementById(`af-qty-${shootId}-${cat}`).value) || 1;
+  const days = parseFloat(document.getElementById(`af-days-${shootId}-${cat}`).value) || 1;
+  const total = rate*qty*days || rate;
+  try {
+    const r = await api('POST', TABLES.lineItems, '', {fields:{'Description':desc,'Category':cat,'Rate':rate,'Qty':qty,'Days':days,'Total':total,'Paid':false,'Shoot':[shootId]}});
+    lineItems.push({id:r.id,desc,cat,rate,qty,days,total,paid:false,shootIds:[shootId]});
+    openAddForm=null; render();
+  } catch(e) { alert('Save failed: '+e.message); }
 }
-async function deleteLI(id){
-  if(!confirm('Delete this line item?'))return;
-  try{await api('DELETE',TABLES.lineItems,id);lineItems=lineItems.filter(li=>li.id!==id);render();}
-  catch(e){alert('Delete failed: '+e.message);}
+async function deleteLI(id) {
+  if (!confirm('Delete this line item?')) return;
+  try { await api('DELETE', TABLES.lineItems, id); lineItems=lineItems.filter(li=>li.id!==id); render(); }
+  catch(e) { alert('Delete failed: '+e.message); }
 }
-async function deleteOH(id){
-  if(!confirm('Delete this overhead item?'))return;
-  try{await api('DELETE',TABLES.overhead,id);overhead=overhead.filter(o=>o.id!==id);render();}
-  catch(e){alert('Delete failed: '+e.message);}
+async function deleteOH(id) {
+  if (!confirm('Delete this overhead item?')) return;
+  try { await api('DELETE', TABLES.overhead, id); overhead=overhead.filter(o=>o.id!==id); render(); }
+  catch(e) { alert('Delete failed: '+e.message); }
 }
-async function addOverhead(){
-  const desc=document.getElementById('oh-desc').value.trim();
-  const amount=parseFloat(document.getElementById('oh-amount').value)||0;
-  if(!desc)return;
-  try{const r=await api('POST',TABLES.overhead,'',{fields:{[F.oh.desc]:desc,[F.oh.amount]:amount,[F.oh.type]:'One-Time',[F.oh.paid]:false}});overhead.push({id:r.id,desc,amount,type:'One-Time',month:'',paid:false});document.getElementById('oh-desc').value='';document.getElementById('oh-amount').value='';document.getElementById('oh-form').classList.remove('open');render();}
-  catch(e){alert('Save failed: '+e.message);}
+async function addOverhead() {
+  const desc = document.getElementById('oh-desc').value.trim();
+  const amount = parseFloat(document.getElementById('oh-amount').value) || 0;
+  if (!desc) return;
+  try {
+    const r = await api('POST', TABLES.overhead, '', {fields:{'Description':desc,'Amount':amount,'Type':'One-Time','Paid':false}});
+    overhead.push({id:r.id,desc,amount,type:'One-Time',month:'',paid:false});
+    document.getElementById('oh-desc').value=''; document.getElementById('oh-amount').value='';
+    document.getElementById('oh-form').classList.remove('open'); render();
+  } catch(e) { alert('Save failed: '+e.message); }
 }
 
-document.getElementById('season-nav').addEventListener('click',e=>{const btn=e.target.closest('[data-season]');if(!btn)return;sf=btn.dataset.season;document.querySelectorAll('#season-nav .nbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();});
-document.getElementById('type-nav').addEventListener('click',e=>{const btn=e.target.closest('[data-type]');if(!btn)return;tf=btn.dataset.type;document.querySelectorAll('#type-nav .nbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();});
-document.getElementById('add-oh-btn').addEventListener('click',()=>{document.getElementById('oh-form').classList.toggle('open');if(document.getElementById('oh-form').classList.contains('open'))setTimeout(()=>document.getElementById('oh-desc').focus(),50);});
-document.getElementById('oh-save').addEventListener('click',addOverhead);
-document.getElementById('oh-cancel').addEventListener('click',()=>document.getElementById('oh-form').classList.remove('open'));
+document.getElementById('season-nav').addEventListener('click', e => { const btn=e.target.closest('[data-season]'); if(!btn) return; sf=btn.dataset.season; document.querySelectorAll('#season-nav .nbtn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); render(); });
+document.getElementById('type-nav').addEventListener('click', e => { const btn=e.target.closest('[data-type]'); if(!btn) return; tf=btn.dataset.type; document.querySelectorAll('#type-nav .nbtn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); render(); });
+document.getElementById('add-oh-btn').addEventListener('click', () => { document.getElementById('oh-form').classList.toggle('open'); if(document.getElementById('oh-form').classList.contains('open')) setTimeout(()=>document.getElementById('oh-desc').focus(),50); });
+document.getElementById('oh-save').addEventListener('click', addOverhead);
+document.getElementById('oh-cancel').addEventListener('click', () => document.getElementById('oh-form').classList.remove('open'));
 
 loadData();
 </script>
