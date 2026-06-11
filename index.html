@@ -897,32 +897,49 @@ function render6016() {
 function render6018() {
   const fp = filter6018.project;
   const allRows = allData.ops;
-  const rows = fp === 'all' ? allRows : allRows.filter(r => r.projects.includes(fp));
 
-  const total   = allRows.reduce((a,r) => a+r.amount, 0);
-  const paid    = allRows.filter(r=>r.paid).reduce((a,r) => a+r.amount, 0);
-  const vendors = allRows.filter(r=>r.subcat==='Outside Vendor').reduce((a,r) => a+r.amount, 0);
-  const tools   = allRows.filter(r=>r.subcat==='Tool').reduce((a,r) => a+r.amount, 0);
-
-  const filteredTotal = rows.reduce((a,r) => a+r.amount, 0);
-  const filteredPaid  = rows.filter(r=>r.paid).reduce((a,r) => a+r.amount, 0);
-  const isFiltered = fp !== 'all';
-
-  // Project totals for chips
   const PROJECTS = ['Website','Email','Social','Paid Media','Data','Content / Creative','General Operations'];
+
+  // Retainer vendors — identified by name prefix
+  const RETAINERS = [
+    { key: 'Zimmer-Design', label: 'Zimmer-Design', subtitle: 'Website & Creative · $3,000/mo', monthly: 3000, project: 'Website' },
+    { key: 'Canal Digital', label: 'Canal Digital LLC', subtitle: 'Ad Management · $2,900/mo', monthly: 2900, project: 'Paid Media' },
+    { key: 'WellCopy', label: 'WellCopy', subtitle: 'Email · Jun–Nov', monthly: null, project: 'Email' },
+  ];
+
+  // Separate retainer rows from one-off rows
+  const retainerPrefixes = RETAINERS.map(r => r.key);
+  const isRetainer = r => retainerPrefixes.some(p => r.name.startsWith(p));
+  const retainerRows = allRows.filter(isRetainer);
+  const oneOffRows   = allRows.filter(r => !isRetainer(r));
+
+  const total         = allRows.reduce((a,r) => a+r.amount, 0);
+  const paid          = allRows.filter(r=>r.paid).reduce((a,r) => a+r.amount, 0);
+  const retainerTotal = retainerRows.reduce((a,r) => a+r.amount, 0);
+  const retainerPaid  = retainerRows.filter(r=>r.paid).reduce((a,r) => a+r.amount, 0);
+  const toolTotal     = oneOffRows.filter(r=>r.subcat==='Tool').reduce((a,r) => a+r.amount, 0);
+  const vendorTotal   = oneOffRows.filter(r=>r.subcat==='Outside Vendor').reduce((a,r) => a+r.amount, 0);
+
+  // Filtered rows for table
+  const filteredOneOff = fp === 'all' ? oneOffRows : oneOffRows.filter(r => r.projects.includes(fp));
+  const filteredTotal  = filteredOneOff.reduce((a,r) => a+r.amount, 0);
+  const isFiltered     = fp !== 'all';
+
+  // Project totals (across all rows)
   const projTotals = {};
   PROJECTS.forEach(p => projTotals[p] = allRows.filter(r=>r.projects.includes(p)).reduce((a,r)=>a+r.amount,0));
   const projMax = Math.max(...Object.values(projTotals), 1);
 
+  // ── STATS ──
   const statsHtml = `
     <div class="stat-row">
-      <div class="stat"><div class="stat-label">${isFiltered?'Filtered':'YTD'} Spent</div><div class="stat-val">${fmt(isFiltered?filteredTotal:total)}</div></div>
-      <div class="stat"><div class="stat-label">Paid</div><div class="stat-val good">${fmt(isFiltered?filteredPaid:paid)}</div></div>
-      <div class="stat"><div class="stat-label">Outside Vendors</div><div class="stat-val" style="${isFiltered?'color:var(--light)':''}">${isFiltered?'—':fmt(vendors)}</div></div>
-      <div class="stat"><div class="stat-label">Tools</div><div class="stat-val" style="${isFiltered?'color:var(--light)':''}">${isFiltered?'—':fmt(tools)}</div></div>
+      <div class="stat"><div class="stat-label">Total Committed</div><div class="stat-val">${fmt(total)}</div></div>
+      <div class="stat"><div class="stat-label">Paid</div><div class="stat-val good">${fmt(paid)}</div></div>
+      <div class="stat"><div class="stat-label">Retainers</div><div class="stat-val">${fmt(retainerTotal)}</div></div>
+      <div class="stat"><div class="stat-label">Tools & Other</div><div class="stat-val">${fmt(toolTotal + vendorTotal)}</div></div>
     </div>`;
 
-  // Project filter chips
+  // ── PROJECT FILTER CHIPS ──
   const projChips = `
     <div class="filter-section">
       <div class="filter-row">
@@ -932,8 +949,54 @@ function render6018() {
       </div>
     </div>`;
 
-  // Split bars — only show when unfiltered
+  // ── RETAINER CARDS ──
+  const retainerCards = RETAINERS.map(ret => {
+    const rows = retainerRows.filter(r => r.name.startsWith(ret.key));
+    const retTotal = rows.reduce((a,r) => a+r.amount, 0);
+    const retPaid  = rows.filter(r=>r.paid).reduce((a,r) => a+r.amount, 0);
+    const paidCount = rows.filter(r=>r.paid).length;
+    const totalCount = rows.length;
+    const summaryClass = paidCount === totalCount && totalCount > 0 ? 'done' : paidCount === 0 ? 'none' : 'partial';
+    const summaryText  = paidCount === totalCount && totalCount > 0 ? 'fully paid' : `${paidCount}/${totalCount} paid`;
+
+    const monthTiles = MONTHS.map(m => {
+      const rec = rows.find(r => r.month === m);
+      if (!rec) return '';
+      return `<div class="month-tile ${rec.paid?'paid-m':''}" onclick="toggleOpsPaid('${rec.id}',${!rec.paid})" style="cursor:pointer">
+        <div class="month-name">${m.slice(0,3)}</div>
+        <div class="month-amt" style="font-size:13px">${rec.amount === 3000 ? '$3k' : rec.amount === 2900 ? '$2.9k' : '$'+rec.amount.toLocaleString()}</div>
+        <div class="month-check">
+          <input type="checkbox" class="cb" style="appearance:none;width:13px;height:13px;border:1.5px solid var(--rule);border-radius:3px;background:${rec.paid?'var(--sage)':'white'};border-color:${rec.paid?'var(--sage)':'var(--rule)'};pointer-events:none;display:inline-block;position:relative;" ${rec.paid?'checked':''}>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div style="border:1px solid var(--rule);border-radius:6px;margin-bottom:10px;overflow:hidden">
+      <div style="display:grid;grid-template-columns:1fr 120px 130px;gap:8px;align-items:center;padding:.85rem 1.25rem;cursor:pointer" onclick="toggleRetainer('${ret.key}')">
+        <div>
+          <div style="font-size:14px;font-weight:500">${ret.label}</div>
+          <div style="font-size:12px;color:var(--light);margin-top:1px">${ret.subtitle}</div>
+        </div>
+        <div style="font-size:20px;font-weight:300;text-align:right;font-variant-numeric:tabular-nums">${fmt(retTotal)}</div>
+        <div style="text-align:right">
+          <span style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:${summaryClass==='done'?'var(--sage)':summaryClass==='none'?'var(--light)':'var(--sienna)'}">${summaryText}</span>
+        </div>
+      </div>
+      <div id="ret-${ret.key.replace(/\s/g,'-')}" style="display:none;border-top:1px solid var(--rule-lt);padding:.85rem 1.25rem">
+        <div class="month-grid" style="grid-template-columns:repeat(6,1fr)">
+          ${monthTiles || '<div style="color:var(--light);font-size:13px;grid-column:1/-1">No months scheduled</div>'}
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--light);margin-top:8px;padding-top:8px;border-top:1px solid var(--rule-lt)">
+          <span>${paidCount} of ${totalCount} months paid</span>
+          <span style="font-variant-numeric:tabular-nums">${fmt(retPaid)} of ${fmt(retTotal)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── SPLIT BARS (unfiltered only) ──
   const splitHtml = !isFiltered ? `
+    <div class="divider"></div>
     <div class="sec-label"><span>By project</span></div>
     <div class="split-bars">
       ${PROJECTS.filter(p=>projTotals[p]>0).sort((a,b)=>projTotals[b]-projTotals[a]).map(p=>`
@@ -942,45 +1005,57 @@ function render6018() {
         <div class="split-track"><div class="split-fill" style="background:var(--champagne);width:${pct(projTotals[p],projMax).toFixed(1)}%"></div></div>
         <div class="split-amt">${fmt(projTotals[p])}</div>
       </div>`).join('')}
-    </div>
-    <div class="divider"></div>` : '';
+    </div>` : '';
 
-  // Table rows
-  let tableRows = rows.length ? rows.map(r => `<tr>
-    <td>
-      <div style="font-size:14px">${r.name}</div>
-      ${r.projects.length ? `<div style="margin-top:3px">${r.projects.map(p=>`<span class="pill" style="background:${p===fp?'#1C1917':'#F5F0EB'};color:${p===fp?'white':'var(--mid)'};margin-right:3px;font-size:10px">${p}</span>`).join('')}</div>` : ''}
-    </td>
-    <td><span class="pill ${r.subcat==='Tool'?'pill-tool':'pill-vendor'}">${r.subcat}</span></td>
-    <td class="dim">${r.month}</td>
-    <td class="r num">${fmtD(r.amount)}</td>
-    <td class="r">
-      <label class="paid-cb ${r.paid?'is-paid':''}" onclick="event.stopPropagation()">
-        <input type="checkbox" ${r.paid?'checked':''} onchange="toggleOpsPaid('${r.id}',this.checked)">
-        <span>${r.paid?'Paid':'Unpaid'}</span>
-      </label>
-    </td>
-  </tr>`).join('') : `<tr><td colspan="5" style="text-align:center;color:var(--light);padding:2rem">No expenses match current filter</td></tr>`;
+  // ── ONE-OFF TABLE ──
+  const subcatSection = (label, subcat, rows) => {
+    const filtered = fp === 'all' ? rows : rows.filter(r => r.projects.includes(fp));
+    if (!filtered.length) return '';
+    const secTotal = filtered.reduce((a,r)=>a+r.amount,0);
+    return `
+      <div class="sec-label" style="margin-top:1.25rem"><span>${label}</span><span class="sec-total">${fmt(secTotal)}</span></div>
+      <table class="data-table">
+        <thead><tr><th>Description</th><th>Project</th><th>Month</th><th class="r">Amount</th><th class="r">Status</th></tr></thead>
+        <tbody>${filtered.map(r=>`<tr>
+          <td style="font-size:14px">${r.name}</td>
+          <td>${r.projects.map(p=>`<span class="pill" style="background:${p===fp?'#1C1917':'#F5F0EB'};color:${p===fp?'white':'var(--mid)'};margin-right:3px;font-size:10px">${p}</span>`).join('')}</td>
+          <td class="dim">${r.month}</td>
+          <td class="r num">${fmtD(r.amount)}</td>
+          <td class="r"><label class="paid-cb ${r.paid?'is-paid':''}" onclick="event.stopPropagation()">
+            <input type="checkbox" ${r.paid?'checked':''} onchange="toggleOpsPaid('${r.id}',this.checked)">
+            <span>${r.paid?'Paid':'Unpaid'}</span>
+          </label></td>
+        </tr>`).join('')}</tbody>
+        <tfoot><tr><td colspan="3"><strong>Total</strong></td><td class="r">${fmt(secTotal)}</td><td></td></tr></tfoot>
+      </table>`;
+  };
+
+  const toolRows   = oneOffRows.filter(r=>r.subcat==='Tool');
+  const vendorRows = oneOffRows.filter(r=>r.subcat==='Outside Vendor');
 
   return `
     <div class="panel-header">
-      <div><div class="panel-title">6018 · Operating Costs</div><div class="panel-subtitle">Vendors, tools & services</div></div>
+      <div><div class="panel-title">6018 · Operating Costs</div><div class="panel-subtitle">Retainers, vendors & software</div></div>
       <div style="font-size:13px;color:var(--light)">${fmt(BUDGETS['6018'] - total)} remaining of $105,000</div>
     </div>
     <div class="panel-body">
       ${statsHtml}
       ${projChips}
+      <div class="sec-label" style="margin-bottom:10px"><span>Retainers</span><span class="sec-total">${fmt(retainerTotal)}</span></div>
+      ${retainerCards}
       ${splitHtml}
-      <div class="sec-label"><span>Expenses</span><span class="sec-total">${fmt(filteredTotal)}${isFiltered?' filtered':' YTD'}</span></div>
-      <table class="data-table">
-        <thead><tr><th>Description</th><th>Type</th><th>Month</th><th class="r">Amount</th><th class="r">Status</th></tr></thead>
-        <tbody>${tableRows}</tbody>
-        <tfoot><tr><td colspan="3"><strong>Total</strong></td><td class="r">${fmt(filteredTotal)}</td><td></td></tr></tfoot>
-      </table>
+      ${subcatSection('Outside Vendors', 'Outside Vendor', vendorRows)}
+      ${subcatSection('Software & Tools', 'Tool', toolRows)}
     </div>`;
 }
 
 // ── INTERACTIONS ──
+function toggleRetainer(key) {
+  const id = 'ret-' + key.replace(/\s/g, '-');
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
 function set6015Filter(axis, value) {
   openShoot = null;
   filter6015[axis] = value;
@@ -1025,10 +1100,11 @@ async function toggleMediaPaid(month, paid) {
 }
 
 async function toggleOpsPaid(id, paid) {
+  const paidBool = paid === true || paid === 'true';
   try {
-    await apiPatch(T.ops, id, {'Paid': paid});
+    await apiPatch(T.ops, id, {'Paid': paidBool});
     const o = allData.ops.find(x => x.id === id);
-    if (o) o.paid = paid;
+    if (o) o.paid = paidBool;
     updateCards(); renderTab('6018');
   } catch(e) { alert('Save failed: ' + e.message); }
 }
