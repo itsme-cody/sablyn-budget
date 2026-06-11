@@ -279,6 +279,39 @@ body {
 .loading-msg { text-align: center; padding: 3rem; font-size: 13px; color: var(--light); letter-spacing: .05em; }
 .error-msg { padding: .75rem 1rem; background: #FEF2F0; border: 1px solid #F5C6C0; border-radius: 4px; font-size: 13px; color: var(--sienna); margin-bottom: 1rem; }
 
+/* ── FILTER CHIPS ── */
+.filter-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  align-items: center;
+}
+.filter-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--light);
+  min-width: 48px;
+}
+.chip {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  background: white;
+  color: var(--mid);
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.chip:hover { border-color: var(--champagne); color: var(--ink); }
+.chip.active { background: var(--ink); color: white; border-color: var(--ink); }
+.filter-section { margin-bottom: 1.25rem; }
+
 /* ── RESPONSIVE ── */
 @media (max-width: 700px) {
   .budget-cards { grid-template-columns: 1fr 1fr; }
@@ -389,6 +422,8 @@ const T = {
 let allData = {};
 let activeTab = '6014';
 let openShoot = null;
+let filter6015 = { season: 'all', type: 'all' };
+let filter6018 = { project: 'all' };
 
 // ── UTILS ──
 const fmt  = n => n == null ? '—' : '$' + Math.round(n).toLocaleString('en-US');
@@ -640,44 +675,89 @@ function render6014() {
 
 // ── 6015 CONTENT PRODUCTION ──
 function render6015() {
-  const liTotal  = allData.lineItems.reduce((a,r) => a+r.total, 0);
-  const liPaid   = allData.lineItems.filter(r=>r.paid).reduce((a,r) => a+r.total, 0);
-  const ohTotal  = allData.overhead.reduce((a,r) => a+r.amount, 0);
-  const ohPaid   = allData.overhead.filter(r=>r.paid).reduce((a,r) => a+r.amount, 0);
-  const total    = liTotal + ohTotal;
-  const paid     = liPaid + ohPaid;
+  const fs = filter6015;
 
-  const statsHtml = `
-    <div class="stat-row">
-      <div class="stat"><div class="stat-label">Total Committed</div><div class="stat-val">${fmt(total)}</div></div>
-      <div class="stat"><div class="stat-label">Paid</div><div class="stat-val good">${fmt(paid)}</div></div>
-      <div class="stat"><div class="stat-label">Shoot Costs</div><div class="stat-val">${fmt(liTotal)}</div></div>
-      <div class="stat"><div class="stat-label">Overhead</div><div class="stat-val">${fmt(ohTotal)}</div></div>
-    </div>`;
+  // Filter shoots
+  const visibleShoots = allData.shoots.filter(s =>
+    (fs.season === 'all' || s.season === fs.season) &&
+    (fs.type   === 'all' || s.type   === fs.type)
+  );
 
-  // Shoots by type/season
   const shootItems = id => allData.lineItems.filter(li => li.shootIds.includes(id));
   const shootTotal = id => shootItems(id).reduce((a,li) => a+li.total, 0);
 
+  // Totals based on filtered shoots
+  const filteredLITotal = visibleShoots.reduce((a,s) => a+shootTotal(s.id), 0);
+  const filteredLIPaid  = visibleShoots.reduce((a,s) => a+shootItems(s.id).filter(li=>li.paid).reduce((b,li)=>b+li.total,0), 0);
+
+  // Full totals for stats when no filter active
+  const allLITotal = allData.lineItems.reduce((a,r) => a+r.total, 0);
+  const ohTotal    = allData.overhead.reduce((a,r) => a+r.amount, 0);
+  const ohPaid     = allData.overhead.filter(r=>r.paid).reduce((a,r) => a+r.amount, 0);
+  const grandTotal = allLITotal + ohTotal;
+  const grandPaid  = allData.lineItems.filter(r=>r.paid).reduce((a,r)=>a+r.total,0) + ohPaid;
+
+  // Season totals for chips
+  const seasonTotals = {};
+  SEASONS.forEach(s => {
+    const ss = allData.shoots.filter(sh => sh.season===s && (fs.type==='all'||sh.type===fs.type));
+    seasonTotals[s] = ss.reduce((a,sh)=>a+shootTotal(sh.id),0);
+  });
+  const typeTotals = {};
+  TYPES.forEach(t => {
+    const ts = allData.shoots.filter(sh => sh.type===t && (fs.season==='all'||sh.season===fs.season));
+    typeTotals[t] = ts.reduce((a,sh)=>a+shootTotal(sh.id),0);
+  });
+
+  const isFiltered = fs.season !== 'all' || fs.type !== 'all';
+  const displayTotal = isFiltered ? filteredLITotal : grandTotal;
+  const displayPaid  = isFiltered ? filteredLIPaid  : grandPaid;
+
+  const statsHtml = `
+    <div class="stat-row">
+      <div class="stat"><div class="stat-label">${isFiltered?'Filtered':'Total'} Committed</div><div class="stat-val">${fmt(displayTotal)}</div></div>
+      <div class="stat"><div class="stat-label">Paid</div><div class="stat-val good">${fmt(displayPaid)}</div></div>
+      <div class="stat"><div class="stat-label">Shoot Costs</div><div class="stat-val">${fmt(isFiltered?filteredLITotal:allLITotal)}</div></div>
+      <div class="stat"><div class="stat-label">Overhead</div><div class="stat-val" style="${isFiltered?'color:var(--light)':''}">${isFiltered?'—':fmt(ohTotal)}</div></div>
+    </div>`;
+
+  // Filter chips
+  const seasonChips = `
+    <div class="filter-row">
+      <span class="filter-label">Season</span>
+      <button class="chip ${fs.season==='all'?'active':''}" onclick="set6015Filter('season','all')">All <span style="opacity:.5;font-size:11px">${fmt(allLITotal)}</span></button>
+      ${SEASONS.map(s=>`<button class="chip ${fs.season===s?'active':''}" onclick="set6015Filter('season','${s}')">${s} <span style="opacity:.5;font-size:11px">${fmt(seasonTotals[s])}</span></button>`).join('')}
+    </div>`;
+
+  const typeChips = `
+    <div class="filter-row">
+      <span class="filter-label">Type</span>
+      <button class="chip ${fs.type==='all'?'active':''}" onclick="set6015Filter('type','all')">All</button>
+      ${TYPES.map(t=>`<button class="chip ${fs.type===t?'active':''}" onclick="set6015Filter('type','${t}')">${t} <span style="opacity:.5;font-size:11px">${fmt(typeTotals[t])}</span></button>`).join('')}
+    </div>`;
+
+  // Shoot rows — ordered by type then season
   let shootRows = '';
   TYPES.forEach(type => {
+    if (fs.type !== 'all' && fs.type !== type) return;
     SEASONS.forEach(season => {
-      const shoot = allData.shoots.find(s => s.type===type && s.season===season);
+      if (fs.season !== 'all' && fs.season !== season) return;
+      const shoot = visibleShoots.find(s => s.type===type && s.season===season);
       if (!shoot) return;
       const st = shootTotal(shoot.id);
       const items = shootItems(shoot.id);
       const paidItems = items.filter(li=>li.paid).length;
       const payStatus = items.length===0 ? 'empty' : paidItems===items.length ? 'paid' : paidItems===0 ? 'unpaid' : 'partial';
-      const statusPill = payStatus==='paid' ? '<span class="pill pill-paid">Paid</span>' :
-                         payStatus==='partial' ? `<span class="pill" style="background:#FEF3C7;color:#92400E">${paidItems}/${items.length}</span>` :
-                         payStatus==='empty' ? '<span style="color:var(--light);font-size:12px">No items</span>' :
-                         '<span style="color:var(--light);font-size:12px">Unpaid</span>';
+      const statusPill = payStatus==='paid'    ? '<span class="pill pill-paid">Paid</span>' :
+                         payStatus==='partial'  ? `<span class="pill" style="background:#FEF3C7;color:#92400E">${paidItems}/${items.length} paid</span>` :
+                         payStatus==='empty'    ? '<span style="color:var(--light);font-size:12px">No items</span>' :
+                                                  '<span style="color:var(--light);font-size:12px">Unpaid</span>';
       const isOpen = openShoot === shoot.id;
-      shootRows += `<tr class="shoot-row" style="cursor:pointer" onclick="toggleShoot('${shoot.id}')">
-        <td><strong style="font-size:13px">${type}</strong> <span style="color:var(--light);font-size:12px">${season}</span></td>
+      shootRows += `<tr style="cursor:pointer" onclick="toggleShoot('${shoot.id}')">
+        <td><strong style="font-size:13px">${type}</strong> <span style="color:var(--light);font-size:12px;margin-left:4px">${season}</span></td>
         <td class="r num">${st > 0 ? fmt(st) : '<span class="dim">—</span>'}</td>
         <td class="r">${statusPill}</td>
-        <td class="r" style="color:var(--light);font-size:16px">${isOpen?'▴':'▾'}</td>
+        <td class="r" style="color:var(--light);font-size:16px;padding-right:6px">${isOpen?'▴':'▾'}</td>
       </tr>`;
       if (isOpen) {
         shootRows += `<tr><td colspan="4" style="padding:0">
@@ -692,7 +772,7 @@ function render6015() {
                   <span style="display:flex;align-items:center;gap:16px">
                     <span style="color:var(--light)">${li.rate?'$'+li.rate:''}</span>
                     <span style="font-variant-numeric:tabular-nums;min-width:80px;text-align:right">${fmtD(li.total)}</span>
-                    <label class="paid-cb ${li.paid?'is-paid':''}">
+                    <label class="paid-cb ${li.paid?'is-paid':''}" onclick="event.stopPropagation()">
                       <input type="checkbox" ${li.paid?'checked':''} onchange="toggleLIPaid('${li.id}',this.checked)">
                       <span>${li.paid?'Paid':'Unpaid'}</span>
                     </label>
@@ -706,12 +786,16 @@ function render6015() {
     });
   });
 
-  // Overhead (Matthew)
+  if (!shootRows) {
+    shootRows = `<tr><td colspan="4" style="text-align:center;color:var(--light);padding:2rem">No shoots match current filters</td></tr>`;
+  }
+
+  // Overhead (Matthew) — only show when not filtered
   const matthew = allData.overhead.filter(o=>o.type==='Monthly Retainer');
   const mPaid = matthew.filter(o=>o.paid).length;
   const otherOH = allData.overhead.filter(o=>o.type!=='Monthly Retainer');
 
-  const matthewHtml = `
+  const matthewHtml = isFiltered ? '' : `
     <div class="divider"></div>
     <div class="sec-label"><span>Overhead</span><span class="sec-total">${fmt(ohTotal)}</span></div>
     <table class="data-table">
@@ -736,11 +820,15 @@ function render6015() {
   return `
     <div class="panel-header">
       <div><div class="panel-title">6015 · Content Production</div><div class="panel-subtitle">16 shoots · 4 seasons</div></div>
-      <div style="font-size:13px;color:var(--light)">${fmt(BUDGETS['6015'] - total)} remaining of $200,000</div>
+      <div style="font-size:13px;color:var(--light)">${fmt(BUDGETS['6015'] - grandTotal)} remaining of $200,000</div>
     </div>
     <div class="panel-body">
       ${statsHtml}
-      <div class="sec-label" style="margin-top:.5rem"><span>Shoots</span><span class="sec-total">${fmt(liTotal)}</span></div>
+      <div class="filter-section">
+        ${seasonChips}
+        ${typeChips}
+      </div>
+      <div class="sec-label"><span>Shoots</span><span class="sec-total">${fmt(filteredLITotal)}${isFiltered?' filtered':' total'}</span></div>
       <table class="data-table">
         <thead><tr><th>Shoot</th><th class="r">Total</th><th class="r">Status</th><th class="r"></th></tr></thead>
         <tbody>${shootRows}</tbody>
@@ -807,54 +895,72 @@ function render6016() {
 
 // ── 6018 OPERATING COSTS ──
 function render6018() {
-  const rows = allData.ops;
-  const total   = rows.reduce((a,r) => a+r.amount, 0);
-  const paid    = rows.filter(r=>r.paid).reduce((a,r) => a+r.amount, 0);
-  const vendors = rows.filter(r=>r.subcat==='Outside Vendor').reduce((a,r) => a+r.amount, 0);
-  const tools   = rows.filter(r=>r.subcat==='Tool').reduce((a,r) => a+r.amount, 0);
+  const fp = filter6018.project;
+  const allRows = allData.ops;
+  const rows = fp === 'all' ? allRows : allRows.filter(r => r.projects.includes(fp));
 
-  // by project
+  const total   = allRows.reduce((a,r) => a+r.amount, 0);
+  const paid    = allRows.filter(r=>r.paid).reduce((a,r) => a+r.amount, 0);
+  const vendors = allRows.filter(r=>r.subcat==='Outside Vendor').reduce((a,r) => a+r.amount, 0);
+  const tools   = allRows.filter(r=>r.subcat==='Tool').reduce((a,r) => a+r.amount, 0);
+
+  const filteredTotal = rows.reduce((a,r) => a+r.amount, 0);
+  const filteredPaid  = rows.filter(r=>r.paid).reduce((a,r) => a+r.amount, 0);
+  const isFiltered = fp !== 'all';
+
+  // Project totals for chips
+  const PROJECTS = ['Website','Email','Social','Paid Media','Data','Content / Creative','General Operations'];
   const projTotals = {};
-  ['Website','Email','Social','Paid Media','Data','Content / Creative','General Operations'].forEach(p => projTotals[p]=0);
-  rows.forEach(r => r.projects.forEach(p => { if(projTotals[p]!==undefined) projTotals[p]+=r.amount; }));
+  PROJECTS.forEach(p => projTotals[p] = allRows.filter(r=>r.projects.includes(p)).reduce((a,r)=>a+r.amount,0));
   const projMax = Math.max(...Object.values(projTotals), 1);
 
   const statsHtml = `
     <div class="stat-row">
-      <div class="stat"><div class="stat-label">YTD Spent</div><div class="stat-val">${fmt(total)}</div></div>
-      <div class="stat"><div class="stat-label">Paid</div><div class="stat-val good">${fmt(paid)}</div></div>
-      <div class="stat"><div class="stat-label">Outside Vendors</div><div class="stat-val">${fmt(vendors)}</div></div>
-      <div class="stat"><div class="stat-label">Tools</div><div class="stat-val">${fmt(tools)}</div></div>
+      <div class="stat"><div class="stat-label">${isFiltered?'Filtered':'YTD'} Spent</div><div class="stat-val">${fmt(isFiltered?filteredTotal:total)}</div></div>
+      <div class="stat"><div class="stat-label">Paid</div><div class="stat-val good">${fmt(isFiltered?filteredPaid:paid)}</div></div>
+      <div class="stat"><div class="stat-label">Outside Vendors</div><div class="stat-val" style="${isFiltered?'color:var(--light)':''}">${isFiltered?'—':fmt(vendors)}</div></div>
+      <div class="stat"><div class="stat-label">Tools</div><div class="stat-val" style="${isFiltered?'color:var(--light)':''}">${isFiltered?'—':fmt(tools)}</div></div>
     </div>`;
 
-  const projHtml = `
+  // Project filter chips
+  const projChips = `
+    <div class="filter-section">
+      <div class="filter-row">
+        <span class="filter-label">Project</span>
+        <button class="chip ${fp==='all'?'active':''}" onclick="set6018Filter('all')">All <span style="opacity:.5;font-size:11px">${fmt(total)}</span></button>
+        ${PROJECTS.map(p => projTotals[p] > 0 ? `<button class="chip ${fp===p?'active':''}" onclick="set6018Filter('${p}')">${p} <span style="opacity:.5;font-size:11px">${fmt(projTotals[p])}</span></button>` : '').join('')}
+      </div>
+    </div>`;
+
+  // Split bars — only show when unfiltered
+  const splitHtml = !isFiltered ? `
     <div class="sec-label"><span>By project</span></div>
     <div class="split-bars">
-      ${Object.entries(projTotals).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).map(([p,v])=>`
+      ${PROJECTS.filter(p=>projTotals[p]>0).sort((a,b)=>projTotals[b]-projTotals[a]).map(p=>`
       <div class="split-row">
         <div class="split-label" style="font-size:13px">${p}</div>
-        <div class="split-track"><div class="split-fill" style="background:var(--champagne);width:${pct(v,projMax).toFixed(1)}%"></div></div>
-        <div class="split-amt">${fmt(v)}</div>
+        <div class="split-track"><div class="split-fill" style="background:var(--champagne);width:${pct(projTotals[p],projMax).toFixed(1)}%"></div></div>
+        <div class="split-amt">${fmt(projTotals[p])}</div>
       </div>`).join('')}
     </div>
-    <div class="divider"></div>`;
+    <div class="divider"></div>` : '';
 
-  // Table
-  let tableRows = rows.map(r => `<tr>
+  // Table rows
+  let tableRows = rows.length ? rows.map(r => `<tr>
     <td>
       <div style="font-size:14px">${r.name}</div>
-      ${r.projects.length ? `<div style="margin-top:3px">${r.projects.map(p=>`<span class="pill" style="background:#F5F0EB;color:var(--mid);margin-right:3px;font-size:10px">${p}</span>`).join('')}</div>` : ''}
+      ${r.projects.length ? `<div style="margin-top:3px">${r.projects.map(p=>`<span class="pill" style="background:${p===fp?'#1C1917':'#F5F0EB'};color:${p===fp?'white':'var(--mid)'};margin-right:3px;font-size:10px">${p}</span>`).join('')}</div>` : ''}
     </td>
     <td><span class="pill ${r.subcat==='Tool'?'pill-tool':'pill-vendor'}">${r.subcat}</span></td>
     <td class="dim">${r.month}</td>
     <td class="r num">${fmtD(r.amount)}</td>
     <td class="r">
-      <label class="paid-cb ${r.paid?'is-paid':''}">
+      <label class="paid-cb ${r.paid?'is-paid':''}" onclick="event.stopPropagation()">
         <input type="checkbox" ${r.paid?'checked':''} onchange="toggleOpsPaid('${r.id}',this.checked)">
         <span>${r.paid?'Paid':'Unpaid'}</span>
       </label>
     </td>
-  </tr>`).join('');
+  </tr>`).join('') : `<tr><td colspan="5" style="text-align:center;color:var(--light);padding:2rem">No expenses match current filter</td></tr>`;
 
   return `
     <div class="panel-header">
@@ -863,17 +969,29 @@ function render6018() {
     </div>
     <div class="panel-body">
       ${statsHtml}
-      ${projHtml}
-      <div class="sec-label"><span>All expenses</span><span class="sec-total">${fmt(total)} YTD</span></div>
+      ${projChips}
+      ${splitHtml}
+      <div class="sec-label"><span>Expenses</span><span class="sec-total">${fmt(filteredTotal)}${isFiltered?' filtered':' YTD'}</span></div>
       <table class="data-table">
         <thead><tr><th>Description</th><th>Type</th><th>Month</th><th class="r">Amount</th><th class="r">Status</th></tr></thead>
         <tbody>${tableRows}</tbody>
-        <tfoot><tr><td colspan="3"><strong>Total</strong></td><td class="r">${fmt(total)}</td><td></td></tr></tfoot>
+        <tfoot><tr><td colspan="3"><strong>Total</strong></td><td class="r">${fmt(filteredTotal)}</td><td></td></tr></tfoot>
       </table>
     </div>`;
 }
 
 // ── INTERACTIONS ──
+function set6015Filter(axis, value) {
+  openShoot = null;
+  filter6015[axis] = value;
+  renderTab('6015');
+}
+
+function set6018Filter(value) {
+  filter6018.project = value;
+  renderTab('6018');
+}
+
 function toggleShoot(id) {
   openShoot = openShoot === id ? null : id;
   renderTab('6015');
