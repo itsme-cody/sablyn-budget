@@ -795,27 +795,55 @@ function render6015() {
   const mPaid = matthew.filter(o=>o.paid).length;
   const otherOH = allData.overhead.filter(o=>o.type!=='Monthly Retainer');
 
+  const matthewPaidAmt = matthew.filter(o=>o.paid).reduce((a,o)=>a+o.amount,0);
+  const summaryClass = mPaid===12 ? 'done' : mPaid===0 ? 'none' : 'partial';
+  const summaryText  = mPaid===12 ? 'fully paid' : `${mPaid}/12 paid`;
+
   const matthewHtml = isFiltered ? '' : `
     <div class="divider"></div>
     <div class="sec-label"><span>Overhead</span><span class="sec-total">${fmt(ohTotal)}</span></div>
-    <table class="data-table">
+    <div style="border:1px solid var(--rule);border-radius:6px;margin-bottom:10px;overflow:hidden">
+      <div style="display:grid;grid-template-columns:1fr 120px 130px;gap:8px;align-items:center;padding:.85rem 1.25rem;cursor:pointer" onclick="toggleRetainer('Matthew')">
+        <div>
+          <div style="font-size:14px;font-weight:500">Matthew Scott</div>
+          <div style="font-size:12px;color:var(--light);margin-top:1px">Photographer retainer · $5,500/mo</div>
+        </div>
+        <div style="font-size:20px;font-weight:300;text-align:right;font-variant-numeric:tabular-nums">${fmt(12*5500)}</div>
+        <div style="text-align:right">
+          <span style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:${summaryClass==='done'?'var(--sage)':summaryClass==='none'?'var(--light)':'var(--sienna)'}">${summaryText}</span>
+        </div>
+      </div>
+      <div id="ret-Matthew" style="display:none;border-top:1px solid var(--rule-lt);padding:.85rem 1.25rem">
+        <div class="month-grid" style="grid-template-columns:repeat(6,1fr)">
+          ${MONTHS.map(m => {
+            const rec = matthew.find(o => o.month===m);
+            if (!rec) return '';
+            return `<div class="month-tile ${rec.paid?'paid-m':''}" onclick="toggleOHPaid('${rec.id}',${!rec.paid})" style="cursor:pointer">
+              <div class="month-name">${m.slice(0,3)}</div>
+              <div class="month-amt" style="font-size:13px">$5.5k</div>
+              <div class="month-check">
+                <input type="checkbox" style="appearance:none;width:13px;height:13px;border:1.5px solid var(--rule);border-radius:3px;background:${rec.paid?'var(--sage)':'white'};border-color:${rec.paid?'var(--sage)':'var(--rule)'};pointer-events:none;display:inline-block;position:relative;" ${rec.paid?'checked':''}>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--light);margin-top:8px;padding-top:8px;border-top:1px solid var(--rule-lt)">
+          <span>${mPaid} of 12 months paid</span>
+          <span style="font-variant-numeric:tabular-nums">${fmt(matthewPaidAmt)} of ${fmt(12*5500)}</span>
+        </div>
+      </div>
+    </div>
+    ${otherOH.length ? `<table class="data-table">
       <thead><tr><th>Item</th><th class="r">Amount</th><th class="r">Status</th></tr></thead>
-      <tbody>
-        <tr>
-          <td>Matthew · Photographer retainer <span style="color:var(--light);font-size:12px">$5,500/mo</span></td>
-          <td class="r num">${fmt(12*5500)}</td>
-          <td class="r"><span class="pill ${mPaid===12?'pill-paid':''}" style="${mPaid<12?'background:#FEF3C7;color:#92400E':''}">${mPaid}/12 months paid</span></td>
-        </tr>
-        ${otherOH.map(o=>`<tr>
-          <td>${o.desc}</td>
-          <td class="r num">${fmt(o.amount)}</td>
-          <td class="r"><label class="paid-cb ${o.paid?'is-paid':''}">
-            <input type="checkbox" ${o.paid?'checked':''} onchange="toggleOHPaid('${o.id}',this.checked)">
-            <span>${o.paid?'Paid':'Unpaid'}</span>
-          </label></td>
-        </tr>`).join('')}
-      </tbody>
-    </table>`;
+      <tbody>${otherOH.map(o=>`<tr>
+        <td>${o.desc}</td>
+        <td class="r num">${fmt(o.amount)}</td>
+        <td class="r"><label class="paid-cb ${o.paid?'is-paid':''}">
+          <input type="checkbox" ${o.paid?'checked':''} onchange="toggleOHPaid('${o.id}',this.checked)">
+          <span>${o.paid?'Paid':'Unpaid'}</span>
+        </label></td>
+      </tr>`).join('')}</tbody>
+    </table>` : ''}`;
 
   return `
     <div class="panel-header">
@@ -1082,10 +1110,11 @@ async function toggleLIPaid(id, paid) {
 }
 
 async function toggleOHPaid(id, paid) {
+  const paidBool = paid === true || paid === 'true';
   try {
-    await apiPatch(T.overhead, id, {'Paid': paid});
+    await apiPatch(T.overhead, id, {'Paid': paidBool});
     const o = allData.overhead.find(x => x.id === id);
-    if (o) o.paid = paid;
+    if (o) o.paid = paidBool;
     updateCards(); renderTab('6015');
   } catch(e) { alert('Save failed: ' + e.message); }
 }
