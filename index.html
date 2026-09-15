@@ -363,25 +363,19 @@ body {
         <span class="pct" id="c6015-pct">—%</span>
       </div>
     </div>
-    <div class="bcard" data-tab="6016" onclick="switchTab('6016')">
+    <div class="bcard" data-tab="6016" onclick="switchTab('6016')" style="opacity:.5;pointer-events:none">
       <div class="bcard-code">6016</div>
       <div class="bcard-name">VIP Loyalty</div>
-      <div class="bcard-spent" id="c6016-spent">—</div>
-      <div class="bcard-budget" id="c6016-budget">of $50,000</div>
-      <div class="bbar-track">
-        <div class="bbar-paid" id="c6016-bar-paid" style="width:0%"></div>
-        <div class="bbar-committed" id="c6016-bar-comm" style="width:0%"></div>
-      </div>
-      <div class="bcard-meta">
-        <span id="c6016-rem">— remaining</span>
-        <span class="pct" id="c6016-pct">—%</span>
-      </div>
+      <div class="bcard-spent" style="font-size:14px;color:var(--light)">Rolled into 6018</div>
+      <div class="bcard-budget" id="c6016-budget"></div>
+      <div class="bbar-track"></div>
+      <div class="bcard-meta"></div>
     </div>
     <div class="bcard" data-tab="6018" onclick="switchTab('6018')">
       <div class="bcard-code">6018</div>
       <div class="bcard-name">Operating Costs</div>
       <div class="bcard-spent" id="c6018-spent">—</div>
-      <div class="bcard-budget" id="c6018-budget">of $105,000</div>
+      <div class="bcard-budget" id="c6018-budget">of $155,000</div>
       <div class="bbar-track">
         <div class="bbar-paid" id="c6018-bar-paid" style="width:0%"></div>
         <div class="bbar-committed" id="c6018-bar-comm" style="width:0%"></div>
@@ -403,10 +397,10 @@ body {
 <script>
 const PROXY = 'https://sablyn-budget-proxy.itsme-5cf.workers.dev';
 const BASE  = 'appEPuHeDmRhiTIig';
-const BUDGETS = { '6014': 210000, '6015': 200000, '6016': 50000, '6018': 105000 };
+const BUDGETS = { '6014': 210000, '6015': 200000, '6016': 50000, '6018': 155000 };
 const MONTHS  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const TYPES   = ['ECOM','JOOR','Lookbook','Content'];
-const SEASONS = ['Spring 26','Pre-Fall 26','Fall 26','Holiday 26','Spring 27'];
+const SEASONS = ['Spring 26','Pre-Fall 26','Fall 26','Holiday 26','Spring 27','Pre-Fall 27'];
 const CATS    = ['Talent','Location','Rentals','Misc'];
 
 // Tables
@@ -556,7 +550,7 @@ function totals6018() {
 }
 
 function updateCards() {
-  const map = { '6014': totals6014(), '6015': totals6015(), '6016': totals6016(), '6018': totals6018() };
+  const map = { '6014': totals6014(), '6015': totals6015(), '6018': totals6018() };
   for (const [code, t] of Object.entries(map)) {
     const budget = BUDGETS[code];
     const rem = budget - t.spent;
@@ -586,7 +580,6 @@ function renderTab(tab) {
   const el = document.getElementById('panel-content');
   if (tab === '6014') el.innerHTML = render6014();
   else if (tab === '6015') el.innerHTML = render6015();
-  else if (tab === '6016') el.innerHTML = render6016();
   else if (tab === '6018') el.innerHTML = render6018();
 }
 
@@ -847,7 +840,7 @@ function render6015() {
 
   return `
     <div class="panel-header">
-      <div><div class="panel-title">6015 · Content Production</div><div class="panel-subtitle">16 shoots · 5 seasons</div></div>
+      <div><div class="panel-title">6015 · Content Production</div><div class="panel-subtitle">18 shoots · 6 seasons</div></div>
       <div style="font-size:13px;color:var(--light)">${fmt(BUDGETS['6015'] - grandTotal)} remaining of $200,000</div>
     </div>
     <div class="panel-body">
@@ -1064,7 +1057,7 @@ function render6018() {
   return `
     <div class="panel-header">
       <div><div class="panel-title">6018 · Operating Costs</div><div class="panel-subtitle">Retainers, vendors & software</div></div>
-      <div style="font-size:13px;color:var(--light)">${fmt(BUDGETS['6018'] - total)} remaining of $105,000</div>
+      <div style="font-size:13px;color:var(--light)">${fmt(BUDGETS['6018'] - total)} remaining of $155,000</div>
     </div>
     <div class="panel-body">
       ${statsHtml}
@@ -1153,7 +1146,7 @@ async function saveVIP() {
   try {
     const r = await apiPost(T.vip, {'Name': name, 'Recipient': recip, 'Type': type, 'Estimated Value': val, 'Month': month, 'Gift Status': 'Planned'});
     allData.vip.push({id: r.id, name, recipient: recip, type, value: val, month, status: 'Planned'});
-    updateCards(); renderTab('6016');
+    updateCards(); renderTab('6018');
   } catch(e) { alert('Save failed: ' + e.message); }
 }
 
